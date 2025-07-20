@@ -31,18 +31,18 @@ Translate the PRD into concrete technical specifications for building, deploying
 
 ```mermaid
 graph TD
-  subgraph Client (Browser)
+  subgraph "Client Browser"
     A1[Wizard UI] -- REST/tRPC --> B[Edge API]
-    A2[Mini‑Chat Drawer] -- WebSocket/HTTP --> C[Chat Svc]
+    A2[Mini-Chat Drawer] -- WebSocket/HTTP --> C[Chat Svc]
   end
-  subgraph Edge Platform (Vercel)
+  subgraph "Edge Platform Vercel"
     B[Edge API] --> D[Scoring Svc]
     B --> E[PDF Svc]
-    C --> F(OpenAI GPT‑4o-mini)
+    C --> F(OpenAI GPT-4o-mini)
   end
-  subgraph Data
+  subgraph "Data Layer"
     G[(Postgres + pgvector)]
-    H[(S3/Cloudflare R2 – Reports)]
+    H[(S3/Cloudflare R2 Reports)]
   end
   B -. Clerk JWT .-> I[Clerk Auth]
   C -. Clerk JWT .-> I
