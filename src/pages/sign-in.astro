@@ -1,0 +1,43 @@
+---
+export const prerender = false;
+---
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign In - ARA System</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body>
+  <div class="min-h-screen bg-base-100 flex items-center justify-center">
+    <div class="card w-96 bg-base-200 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title justify-center mb-6">Sign In to ARA</h2>
+        <div id="clerk-sign-in"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { ClerkJS } from '@clerk/clerk-js';
+    
+    const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+    
+    if (!publishableKey) {
+      throw new Error('Missing Clerk Publishable Key');
+    }
+    
+    const clerk = new ClerkJS(publishableKey);
+    await clerk.load();
+    
+    const signInDiv = document.getElementById('clerk-sign-in');
+    if (signInDiv) {
+      clerk.mountSignIn(signInDiv, {
+        signUpUrl: '/sign-up',
+        afterSignInUrl: '/dashboard',
+      });
+    }
+  </script>
+</body>
+</html>

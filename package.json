@@ -1,0 +1,58 @@
+{
+  "name": "appstoagents-ara",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Agent Readiness Audit - A wizard-first web application with embedded mini-chat",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx,.astro",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx,.astro --fix",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/react": "^4.3.0",
+    "@astrojs/tailwind": "^6.0.2",
+    "@astrojs/vercel": "^7.8.2",
+    "@clerk/astro": "^2.10.8",
+    "@clerk/clerk-js": "^5.74.1",
+    "@clerk/types": "^4.68.0",
+    "@prisma/client": "^6.12.0",
+    "@tanstack/react-query": "^4.40.1",
+    "@trpc/client": "^10.45.2",
+    "@trpc/react-query": "^10.45.2",
+    "@trpc/server": "^10.45.2",
+    "astro": "^4.16.0",
+    "daisyui": "^4.12.10",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "superjson": "^2.2.2",
+    "svix": "^1.69.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.13.0",
+    "prisma": "^6.12.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

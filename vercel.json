@@ -1,0 +1,29 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "astro",
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "CLERK_SECRET_KEY": "@clerk_secret_key",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "CLOUDFLARE_R2_ACCESS_KEY_ID": "@r2_access_key_id",
+    "CLOUDFLARE_R2_SECRET_ACCESS_KEY": "@r2_secret_access_key",
+    "CLOUDFLARE_R2_BUCKET_NAME": "@r2_bucket_name",
+    "CLOUDFLARE_R2_ENDPOINT": "@r2_endpoint",
+    "UPSTASH_REDIS_URL": "@upstash_redis_url",
+    "UPSTASH_REDIS_TOKEN": "@upstash_redis_token"
+  },
+  "functions": {
+    "src/pages/api/trpc/[trpc].ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/trpc/(.*)",
+      "destination": "/api/trpc/$1"
+    }
+  ]
+}

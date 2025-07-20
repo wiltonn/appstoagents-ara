@@ -1,0 +1,93 @@
+---
+export const prerender = false;
+
+// Auth is provided by middleware in locals
+const userId = Astro.locals.userId;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>ARA - Agent Readiness Audit</title>
+	</head>
+	<body class="min-h-screen bg-base-100">
+		<div class="navbar bg-base-200">
+			<div class="flex-1">
+				<a class="btn btn-ghost text-xl">ARA System</a>
+			</div>
+			<div class="flex-none">
+				{userId ? (
+					<div class="flex gap-2">
+						<a href="/dashboard" class="btn btn-primary">Dashboard</a>
+						<div class="dropdown dropdown-end">
+							<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+								<div class="w-10 rounded-full">
+									<div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+										<span class="text-lg">👤</span>
+									</div>
+								</div>
+							</div>
+							<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+								<li><a href="/dashboard">Dashboard</a></li>
+								<li><a id="sign-out">Sign out</a></li>
+							</ul>
+						</div>
+					</div>
+				) : (
+					<div class="flex gap-2">
+						<a href="/sign-in" class="btn btn-outline">Sign In</a>
+						<a href="/sign-up" class="btn btn-primary">Sign Up</a>
+					</div>
+				)}
+			</div>
+		</div>
+
+		<div class="hero min-h-screen bg-base-100">
+			<div class="hero-content text-center">
+				<div class="max-w-md">
+					<h1 class="text-5xl font-bold">Agent Readiness Audit</h1>
+					<p class="py-6">
+						Assess your organization's readiness for AI agent implementation. 
+						Get personalized recommendations and a comprehensive roadmap.
+					</p>
+					<div class="flex flex-col gap-4">
+						{userId ? (
+							<a href="/wizard" class="btn btn-primary btn-lg">Continue Your Audit</a>
+						) : (
+							<>
+								<a href="/wizard" class="btn btn-primary btn-lg">Start Free Audit</a>
+								<div class="divider">OR</div>
+								<div class="text-sm text-base-content/70">
+									<a href="/sign-up" class="link">Create an account</a> to save your progress and access advanced features
+								</div>
+							</>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			import { ClerkJS } from '@clerk/clerk-js';
+			
+			const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+			
+			if (publishableKey) {
+				const clerk = new ClerkJS(publishableKey);
+				await clerk.load();
+				
+				// Handle sign out
+				const signOutBtn = document.getElementById('sign-out');
+				if (signOutBtn) {
+					signOutBtn.addEventListener('click', async () => {
+						await clerk.signOut();
+						window.location.href = '/';
+					});
+				}
+			}
+		</script>
+	</body>
+</html>

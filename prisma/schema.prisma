@@ -1,0 +1,221 @@
+// Agent Readiness Audit (ARA) - Database Schema
+// Generated for Phase 1.2 Database Implementation
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [pgvector]
+}
+
+// =====================================================
+// User Management Models
+// =====================================================
+
+model User {
+  id           String   @id @default(uuid())
+  clerkId      String   @unique
+  email        String?
+  firstName    String?
+  lastName     String?
+  profileImageUrl String?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastLoginAt  DateTime?
+  deletedAt    DateTime?
+  
+  // Relations
+  auditSessions AuditSession[]
+  
+  // Indexes and constraints
+  @@map("users")
+  @@index([clerkId])
+  @@index([email])
+  @@index([createdAt])
+}
+
+// =====================================================
+// Audit Session Models
+// =====================================================
+
+model AuditSession {
+  id           String   @id @default(uuid())
+  
+  // Identity (either userId OR anonymousId)
+  userId       String?
+  anonymousId  String?
+  
+  // Status and scoring
+  status       AuditStatus @default(DRAFT)
+  score        Decimal?    @db.Decimal(5,2) // 0.00 to 999.99
+  scoringData  Json?       // Detailed scoring breakdown
+  
+  // Metadata
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+  updatedAt    DateTime  @updatedAt
+  
+  // PDF generation
+  pdfJobId     String?
+  pdfUrl       String?
+  pdfGeneratedAt DateTime?
+  
+  // Relations
+  user         User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers      AuditAnswer[]
+  chatMessages ChatMessage[]
+  
+  // Indexes and constraints
+  @@map("audit_sessions")
+  @@index([userId])
+  @@index([anonymousId])
+  @@index([status])
+  @@index([startedAt])
+  @@unique([anonymousId], name: "unique_anonymous_session")
+}
+
+enum AuditStatus {
+  DRAFT         // In progress
+  SUBMITTED     // User submitted, pending scoring
+  SCORED        // Scoring complete
+  REPORT_READY  // PDF generated
+  ARCHIVED      // Soft deleted
+}
+
+model AuditAnswer {
+  id           String   @id @default(uuid())
+  
+  // Session relation
+  auditSessionId String
+  auditSession   AuditSession @relation(fields: [auditSessionId], references: [id], onDelete: Cascade)
+  
+  // Question data
+  questionKey  String   // e.g., "company_size", "tech_stack"
+  stepId       String   // Which wizard step
+  value        Json     // Flexible answer storage
+  
+  // Metadata
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Composite indexes
+  @@map("audit_answers")
+  @@unique([auditSessionId, questionKey], name: "unique_session_question")
+  @@index([auditSessionId])
+  @@index([questionKey])
+  @@index([stepId])
+}
+
+// =====================================================
+// Chat System Models
+// =====================================================
+
+model ChatMessage {
+  id           String   @id @default(uuid())
+  
+  // Session relation
+  auditSessionId String
+  auditSession   AuditSession @relation(fields: [auditSessionId], references: [id], onDelete: Cascade)
+  
+  // Message data
+  role         MessageRole
+  content      String        @db.Text
+  metadata     Json?        // Function calls, step context, etc.
+  
+  // Token tracking
+  tokens       Int          @default(0)
+  
+  // Vector embedding for semantic search
+  embedding    Unsupported("vector(1536)")?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  
+  // Indexes
+  @@map("chat_messages")
+  @@index([auditSessionId, createdAt])
+  @@index([role])
+  @@index([createdAt])
+  // Note: Vector index will be added manually in migration SQL
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  FUNCTION
+}
+
+// =====================================================
+// PDF Generation Models
+// =====================================================
+
+model PDFJob {
+  id           String   @id @default(uuid())
+  
+  // Job data
+  sessionId    String
+  status       JobStatus @default(PENDING)
+  priority     JobPriority @default(NORMAL)
+  
+  // Processing data
+  templateData Json
+  errorMessage String?
+  retryCount   Int      @default(0)
+  
+  // File storage
+  r2Key        String?
+  signedUrl    String?
+  urlExpiresAt DateTime?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+  
+  // Indexes
+  @@map("pdf_jobs")
+  @@index([sessionId])
+  @@index([status, priority])
+  @@index([createdAt])
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// =====================================================
+// Configuration Models
+// =====================================================
+
+// Configuration table for hot-reloading scoring weights
+model ScoringConfig {
+  id        String   @id @default("default")
+  version   String
+  config    Json     // Scoring weights and rules
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  createdBy String?
+  
+  @@map("scoring_configs")
+  @@index([isActive])
+  @@index([version])
+}

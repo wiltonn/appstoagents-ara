@@ -1,0 +1,105 @@
+---
+export const prerender = false;
+
+// Auth is provided by middleware in locals
+const userId = Astro.locals.userId;
+
+if (!userId) {
+  return Astro.redirect('/sign-in');
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - ARA System</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="min-h-screen bg-base-100">
+  <div class="navbar bg-base-200">
+    <div class="flex-1">
+      <a class="btn btn-ghost text-xl">ARA Dashboard</a>
+    </div>
+    <div class="flex-none">
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+          <div class="w-10 rounded-full">
+            <img id="user-avatar" alt="User avatar" src="" />
+          </div>
+        </div>
+        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+          <li><a href="/wizard">Start Audit</a></li>
+          <li><a href="/reports">My Reports</a></li>
+          <li><a id="sign-out">Sign out</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">Welcome to ARA Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">Agent Readiness Audit</h2>
+          <p>Assess your organization's readiness for AI agent implementation.</p>
+          <div class="card-actions justify-end">
+            <a href="/wizard" class="btn btn-primary">Start Audit</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">My Reports</h2>
+          <p>View and download your completed audit reports.</p>
+          <div class="card-actions justify-end">
+            <a href="/reports" class="btn btn-secondary">View Reports</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">Progress Tracking</h2>
+          <p>Monitor your organization's improvement over time.</p>
+          <div class="card-actions justify-end">
+            <a href="/progress" class="btn btn-accent">View Progress</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { ClerkJS } from '@clerk/clerk-js';
+    
+    const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+    
+    if (!publishableKey) {
+      throw new Error('Missing Clerk Publishable Key');
+    }
+    
+    const clerk = new ClerkJS(publishableKey);
+    await clerk.load();
+    
+    // Update user avatar
+    const user = clerk.user;
+    const avatarImg = document.getElementById('user-avatar');
+    if (user && avatarImg) {
+      avatarImg.src = user.imageUrl || '/default-avatar.png';
+    }
+    
+    // Handle sign out
+    const signOutBtn = document.getElementById('sign-out');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', async () => {
+        await clerk.signOut();
+        window.location.href = '/';
+      });
+    }
+  </script>
+</body>
+</html>
