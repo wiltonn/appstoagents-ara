@@ -434,7 +434,7 @@ Node.js 18+, npm/yarn, Docker, PostgreSQL 15+
 # Development setup
 git clone <repository>
 npm install
-cp .env.example .env.local
+# Environment variables are already configured in .env
 npm run db:setup
 npm run dev
 ```

@@ -39,10 +39,8 @@ npm install
 ### 3. Environment Configuration
 
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit environment variables
+# Environment variables are already configured in .env
+# Edit environment variables as needed
 nano .env
 ```
 
@@ -155,7 +153,7 @@ sudo -u postgres psql ara_dev -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
 ### Environment Variables
 
-Create `.env` file with the following variables:
+The `.env` file should contain the following variables:
 
 ```bash
 # Database

@@ -24,3 +24,21 @@ pnpm-debug.log*
 .idea/
 
 /src/generated/prisma
+
+
+# Ignore all env files
+.env
+.env.*
+# …but keep a template for others to copy
+!.env.example
+
+# Ignore dotenv‑expand or direnv shells
+.env.local
+.env.*.local
+
+# Extra safety for CI or tooling
+.npmrc
+.pnpmfile.cjs
+*.secret.*
+*.pem
+*.key

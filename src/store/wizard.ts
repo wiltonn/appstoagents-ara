@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { WizardProgress, WizardAnswer, WizardStep } from '../types/wizard';
+import type { TotalScore, ScoringPreview } from '../types/scoring';
 import { WIZARD_CONFIG } from '../config/wizard';
+import { calculateScore, generatePreview } from '../lib/scoring';
 
 interface WizardState {
   // Current wizard state
@@ -16,6 +18,11 @@ interface WizardState {
   progress: number;
   completedSteps: string[];
   currentStepData?: WizardStep;
+  
+  // Scoring state
+  currentScore?: TotalScore;
+  scoringPreview?: ScoringPreview;
+  showScorePreview: boolean;
   
   // Actions
   setCurrentStep: (step: number) => void;
@@ -33,6 +40,10 @@ interface WizardState {
   isStepValid: (stepId?: string) => boolean;
   getStepProgress: (stepId: string) => number;
   
+  // Scoring actions
+  toggleScorePreview: () => void;
+  recalculateScore: () => void;
+  
   // Internal methods
   updateComputedValues: () => void;
 }
@@ -46,6 +57,9 @@ const initialState = {
   progress: 0,
   completedSteps: [],
   currentStepData: WIZARD_CONFIG.steps[0],
+  currentScore: undefined,
+  scoringPreview: undefined,
+  showScorePreview: false,
 };
 
 export const useWizardStore = create<WizardState>()(
@@ -86,13 +100,15 @@ export const useWizardStore = create<WizardState>()(
         error: undefined,
       }));
       
-      // Update computed values
+      // Update computed values and recalculate score
       get().updateComputedValues();
+      get().recalculateScore();
     },
     
     setAnswers: (answers: Record<string, any>) => {
       set({ answers, error: undefined });
       get().updateComputedValues();
+      get().recalculateScore();
     },
     
     setSessionId: (sessionId: string) => {
@@ -170,6 +186,31 @@ export const useWizardStore = create<WizardState>()(
       return totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
     },
     
+    toggleScorePreview: () => {
+      set(state => ({ showScorePreview: !state.showScorePreview }));
+    },
+    
+    recalculateScore: () => {
+      const { answers, currentStep } = get();
+      try {
+        const currentScore = calculateScore(answers);
+        const scoringPreview = generatePreview(answers, currentStep);
+        
+        set({ 
+          currentScore, 
+          scoringPreview,
+          error: undefined,
+        });
+      } catch (error) {
+        console.error('Error calculating score:', error);
+        set({ 
+          error: 'Failed to calculate score',
+          currentScore: undefined,
+          scoringPreview: undefined,
+        });
+      }
+    },
+    
     // Internal method to update computed values
     updateComputedValues: () => {
       const { currentStep, totalSteps, answers } = get();
@@ -202,3 +243,6 @@ export const useWizardProgress = () => useWizardStore(state => state.progress);
 export const useWizardAnswers = () => useWizardStore(state => state.answers);
 export const useWizardLoading = () => useWizardStore(state => state.isLoading);
 export const useWizardError = () => useWizardStore(state => state.error);
+export const useCurrentScore = () => useWizardStore(state => state.currentScore);
+export const useScoringPreview = () => useWizardStore(state => state.scoringPreview);
+export const useShowScorePreview = () => useWizardStore(state => state.showScorePreview);

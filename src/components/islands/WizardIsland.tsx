@@ -4,6 +4,7 @@ import { WIZARD_CONFIG } from '../../config/wizard';
 import { WizardStep } from '../wizard/WizardStep';
 import { ProgressBar } from '../wizard/ProgressBar';
 import { StepNavigation } from '../wizard/StepNavigation';
+import { ScorePreview } from '../wizard/ScorePreview';
 
 interface WizardIslandProps {
   sessionId?: string;
@@ -27,6 +28,9 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     progress,
     completedSteps,
     currentStepData,
+    currentScore,
+    scoringPreview,
+    showScorePreview,
     setCurrentStep,
     nextStep,
     previousStep,
@@ -36,6 +40,8 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     setError,
     isStepValid,
     loadProgress,
+    toggleScorePreview,
+    recalculateScore,
   } = useWizardStore();
 
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -54,6 +60,11 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
       setSessionId(newSessionId);
     }
   }, [sessionId, setSessionId]);
+
+  // Initial score calculation
+  useEffect(() => {
+    recalculateScore();
+  }, []);
 
   // Auto-save functionality
   useEffect(() => {
@@ -257,6 +268,16 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
           totalSteps={totalSteps}
           completedSteps={completedSteps}
           stepTitles={stepTitles}
+        />
+      </div>
+
+      {/* Score Preview */}
+      <div className="mb-8">
+        <ScorePreview
+          score={currentScore}
+          preview={scoringPreview}
+          isVisible={showScorePreview}
+          onToggle={toggleScorePreview}
         />
       </div>
 
