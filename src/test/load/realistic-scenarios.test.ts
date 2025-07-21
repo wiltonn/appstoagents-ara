@@ -302,13 +302,13 @@ test.describe('Realistic Load Testing Scenarios', () => {
     expect(baseline.requestsPerSecond).toBeGreaterThan(5); // Reasonable throughput
 
     // Store baseline for future comparisons
-    await this.storeBaseline(baseline);
+    await storeBaseline(baseline);
   });
-
-  // Helper method to store baseline results
-  private async storeBaseline(baseline: any) {
-    // This would typically store baseline metrics in a database or file
-    // for future regression testing and performance monitoring
-    console.log('💾 Baseline metrics stored for future comparison');
-  }
 });
+
+// Helper function to store baseline results
+async function storeBaseline(baseline: any) {
+  // This would typically store baseline metrics in a database or file
+  // for future regression testing and performance monitoring
+  console.log('💾 Baseline metrics stored for future comparison');
+}
