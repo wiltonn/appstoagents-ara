@@ -1,0 +1,40 @@
+# Development Environment Configuration
+# Copy to terraform.tfvars and fill in actual values
+
+# Environment Configuration
+environment = "dev"
+project_name = "ara-system"
+
+# Vercel Configuration
+vercel_team_id = "your_vercel_team_id_here"
+
+# Database Configuration (PlanetScale)
+planetscale_organization = "your_planetscale_org_name"
+
+# Storage Configuration (Cloudflare)
+cloudflare_account_id = "your_cloudflare_account_id"
+
+# Redis Configuration (Upstash)
+upstash_email = "your_upstash_email@example.com"
+
+# Domain Configuration
+production_domain = "ara-system.com"  # Development will use dev.ara-system.com
+
+# API Keys and Secrets (Set these as environment variables instead)
+# export TF_VAR_vercel_api_token="..."
+# export TF_VAR_cloudflare_api_token="..."
+# export TF_VAR_upstash_api_key="..."
+# export TF_VAR_planetscale_api_token="..."
+
+# Application Environment Variables (Development/Testing keys)
+# export TF_VAR_openai_api_key="sk-..."
+# export TF_VAR_clerk_secret_key="sk_test_..."
+# export TF_VAR_clerk_publishable_key="pk_test_..."
+# export TF_VAR_upstash_redis_url="redis://..."
+# export TF_VAR_cloudflare_r2_access_key="..."
+# export TF_VAR_cloudflare_r2_secret_key="..."
+
+# Monitoring Configuration (Disabled for development)
+# export TF_VAR_datadog_api_key=""
+# export TF_VAR_datadog_app_key=""
+# export TF_VAR_slack_webhook_url=""

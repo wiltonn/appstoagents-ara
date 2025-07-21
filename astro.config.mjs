@@ -15,7 +15,6 @@ export default defineConfig({
     },
     // Performance optimizations for Vercel
     maxDuration: 30,
-    includeFiles: ['./src/generated/**/*'],
     excludeFiles: ['./src/test/**/*'],
   }),
   integrations: [
@@ -117,6 +116,7 @@ export default defineConfig({
       exclude: [
         'puppeteer', // Heavy dependency, load on demand
         '@aws-sdk/client-s3', // Load on demand for PDF operations
+        '@prisma/client', // Exclude Prisma from browser optimization
       ],
     },
     
@@ -134,8 +134,8 @@ export default defineConfig({
       treeShaking: true,
       // Remove unused imports
       pure: ['console.log'],
-      // Target modern browsers for smaller bundles
-      target: 'es2020',
+      // Target modern browsers for smaller bundles (es2022+ supports top-level await)
+      target: 'es2022',
     },
     
     // CSS optimization
@@ -159,8 +159,6 @@ export default defineConfig({
   build: {
     // Inline CSS for critical styles
     inlineStylesheets: 'auto',
-    // Split by pages for better caching
-    split: true,
   },
   
   // Image optimization
@@ -177,10 +175,8 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   
-  // Experimental optimizations
+  // Experimental optimizations (only include valid features for Astro 4.16)
   experimental: {
-    // Enable view transitions for better perceived performance
-    viewTransitions: true,
     // Enable content collection cache
     contentCollectionCache: true,
   },

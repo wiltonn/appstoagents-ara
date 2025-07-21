@@ -82,24 +82,27 @@ if (!userId) {
       throw new Error('Missing Clerk Publishable Key');
     }
     
-    const clerk = new ClerkJS(publishableKey);
-    await clerk.load();
-    
-    // Update user avatar
-    const user = clerk.user;
-    const avatarImg = document.getElementById('user-avatar');
-    if (user && avatarImg) {
-      avatarImg.src = user.imageUrl || '/default-avatar.png';
-    }
-    
-    // Handle sign out
-    const signOutBtn = document.getElementById('sign-out');
-    if (signOutBtn) {
-      signOutBtn.addEventListener('click', async () => {
-        await clerk.signOut();
-        window.location.href = '/';
-      });
-    }
+    // Wrap in async function to avoid top-level await
+    (async () => {
+      const clerk = new ClerkJS(publishableKey);
+      await clerk.load();
+      
+      // Update user avatar
+      const user = clerk.user;
+      const avatarImg = document.getElementById('user-avatar');
+      if (user && avatarImg) {
+        avatarImg.src = user.imageUrl || '/default-avatar.png';
+      }
+      
+      // Handle sign out
+      const signOutBtn = document.getElementById('sign-out');
+      if (signOutBtn) {
+        signOutBtn.addEventListener('click', async () => {
+          await clerk.signOut();
+          window.location.href = '/';
+        });
+      }
+    })();
   </script>
 </body>
 </html>

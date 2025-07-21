@@ -39,7 +39,6 @@ export default defineConfig({
         'src/**/*.test.{ts,js}',
         'src/**/*.spec.{ts,js}',
         'src/**/*.d.ts',
-        'src/generated/**',
         'src/test/**',
         'src/middleware.ts', // Astro middleware
         'src/env.d.ts',

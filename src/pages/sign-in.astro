@@ -28,16 +28,19 @@ export const prerender = false;
       throw new Error('Missing Clerk Publishable Key');
     }
     
-    const clerk = new ClerkJS(publishableKey);
-    await clerk.load();
-    
-    const signInDiv = document.getElementById('clerk-sign-in');
-    if (signInDiv) {
-      clerk.mountSignIn(signInDiv, {
-        signUpUrl: '/sign-up',
-        afterSignInUrl: '/dashboard',
-      });
-    }
+    // Wrap in async function to avoid top-level await
+    (async () => {
+      const clerk = new ClerkJS(publishableKey);
+      await clerk.load();
+      
+      const signInDiv = document.getElementById('clerk-sign-in');
+      if (signInDiv) {
+        clerk.mountSignIn(signInDiv, {
+          signUpUrl: '/sign-up',
+          afterSignInUrl: '/dashboard',
+        });
+      }
+    })();
   </script>
 </body>
 </html>

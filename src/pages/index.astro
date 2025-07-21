@@ -76,17 +76,20 @@ const userId = Astro.locals.userId;
 			const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 			
 			if (publishableKey) {
-				const clerk = new ClerkJS(publishableKey);
-				await clerk.load();
-				
-				// Handle sign out
-				const signOutBtn = document.getElementById('sign-out');
-				if (signOutBtn) {
-					signOutBtn.addEventListener('click', async () => {
-						await clerk.signOut();
-						window.location.href = '/';
-					});
-				}
+				// Wrap in async function to avoid top-level await
+				(async () => {
+					const clerk = new ClerkJS(publishableKey);
+					await clerk.load();
+					
+					// Handle sign out
+					const signOutBtn = document.getElementById('sign-out');
+					if (signOutBtn) {
+						signOutBtn.addEventListener('click', async () => {
+							await clerk.signOut();
+							window.location.href = '/';
+						});
+					}
+				})();
 			}
 		</script>
 	</body>

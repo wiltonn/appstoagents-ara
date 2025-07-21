@@ -55,8 +55,10 @@ const hasGuestSession = !!getAnonymousIdFromCookie(cookieHeader);
       throw new Error('Missing Clerk Publishable Key');
     }
     
-    const clerk = new ClerkJS(publishableKey);
-    await clerk.load();
+    // Wrap in async function to avoid top-level await
+    (async () => {
+      const clerk = new ClerkJS(publishableKey);
+      await clerk.load();
     
     const signUpDiv = document.getElementById('clerk-sign-up');
     if (signUpDiv) {
@@ -66,47 +68,48 @@ const hasGuestSession = !!getAnonymousIdFromCookie(cookieHeader);
       });
     }
 
-    // Handle guest session conversion after successful sign up
-    clerk.addListener('user.signed_up', async (user) => {
-      try {
-        // Convert guest session if it exists
-        const response = await fetch('/api/guest/convert-session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id }),
-        });
+      // Handle guest session conversion after successful sign up
+      clerk.addListener('user.signed_up', async (user) => {
+        try {
+          // Convert guest session if it exists
+          const response = await fetch('/api/guest/convert-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user.id }),
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('✅ Guest session converted successfully:', data);
-          
-          // Show success message briefly before redirect
-          const toast = document.createElement('div');
-          toast.className = 'toast toast-top toast-end';
-          toast.innerHTML = `
-            <div class="alert alert-success">
-              <span>✅ Progress saved! Redirecting to dashboard...</span>
-            </div>
-          `;
-          document.body.appendChild(toast);
-          
-          // Redirect after short delay
-          setTimeout(() => {
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Guest session converted successfully:', data);
+            
+            // Show success message briefly before redirect
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-top toast-end';
+            toast.innerHTML = `
+              <div class="alert alert-success">
+                <span>✅ Progress saved! Redirecting to dashboard...</span>
+              </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Redirect after short delay
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 1500);
+          } else {
+            // If conversion fails, still proceed to dashboard
+            console.warn('Guest session conversion failed, proceeding to dashboard');
             window.location.href = '/dashboard';
-          }, 1500);
-        } else {
-          // If conversion fails, still proceed to dashboard
-          console.warn('Guest session conversion failed, proceeding to dashboard');
+          }
+        } catch (error) {
+          console.error('Error converting guest session:', error);
+          // Still proceed to dashboard even if conversion fails
           window.location.href = '/dashboard';
         }
-      } catch (error) {
-        console.error('Error converting guest session:', error);
-        // Still proceed to dashboard even if conversion fails
-        window.location.href = '/dashboard';
-      }
-    });
+      });
+    })();
   </script>
 </body>
 </html>
