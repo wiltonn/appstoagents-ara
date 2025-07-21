@@ -1,0 +1,19 @@
+---
+// Security Admin Page - Task 3.2: Security Hardening
+// Administrative interface for security monitoring and management
+
+import Layout from '../../layouts/Layout.astro';
+import { SecurityAuditDashboard } from '../../components/admin/SecurityAuditDashboard';
+---
+
+<Layout title="Security Dashboard - ARA Admin">
+  <main class="container mx-auto px-4 py-8">
+    <SecurityAuditDashboard client:load />
+  </main>
+</Layout>
+
+<style>
+  main {
+    min-height: calc(100vh - 4rem);
+  }
+</style>

@@ -1,0 +1,334 @@
+---
+export const prerender = false;
+
+import { generateAnonymousId, getOrCreateAnonymousSession, getOrCreateUserSession } from '../utils/db';
+import { setAnonymousIdCookie, getAnonymousIdFromCookie } from '../utils/auth';
+
+// Get authentication info from middleware
+const userId = Astro.locals.userId;
+const isAuthenticated = !!userId;
+
+// Handle session management for guest vs authenticated users
+let session;
+let anonymousId: string | null = null;
+let shouldSetCookie = false;
+
+if (isAuthenticated && userId) {
+  // Authenticated user - get or create user session
+  session = await getOrCreateUserSession(userId);
+} else {
+  // Guest user - handle anonymous session
+  const cookieHeader = Astro.request.headers.get('cookie');
+  anonymousId = getAnonymousIdFromCookie(cookieHeader);
+  
+  if (!anonymousId) {
+    // Generate new anonymous ID for first-time guest
+    anonymousId = generateAnonymousId();
+    shouldSetCookie = true;
+  }
+  
+  // Get or create anonymous session
+  session = await getOrCreateAnonymousSession(anonymousId);
+}
+
+// Set anonymous ID cookie for guest users
+if (shouldSetCookie && anonymousId) {
+  const cookieValue = setAnonymousIdCookie(anonymousId);
+  Astro.response.headers.set('Set-Cookie', cookieValue);
+}
+
+// Prepare session data for the wizard
+const sessionData = {
+  id: session.id,
+  status: session.status,
+  isAuthenticated,
+  userId: userId || null,
+  anonymousId: anonymousId || null,
+  answers: session.answers || [],
+  progress: {
+    totalSteps: 10, // This would come from wizard config
+    completedSteps: new Set(session.answers?.map(a => a.stepId) || []).size,
+    lastStepCompleted: Math.max(0, ...session.answers?.map(a => a.stepId) || [0]),
+  },
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Agent Readiness Audit - Wizard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  </head>
+  <body class="min-h-screen bg-base-100">
+    <!-- Navigation Bar -->
+    <div class="navbar bg-base-200">
+      <div class="flex-1">
+        <a href="/" class="btn btn-ghost text-xl">ARA System</a>
+        <div class="breadcrumbs text-sm ml-4">
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li>Agent Readiness Audit</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex-none">
+        {isAuthenticated ? (
+          <div class="flex gap-2 items-center">
+            <div class="text-sm text-base-content/70">
+              Progress saved automatically
+            </div>
+            <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                <div class="w-10 rounded-full">
+                  <div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                    <span class="text-lg">👤</span>
+                  </div>
+                </div>
+              </div>
+              <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a id="sign-out">Sign out</a></li>
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div class="flex gap-2 items-center">
+            <div class="text-sm text-base-content/70">
+              Guest mode - <a href="#" id="save-progress-prompt" class="link">Save your progress?</a>
+            </div>
+            <div class="dropdown dropdown-end">
+              <div tabindex="0" role="button" class="btn btn-outline btn-sm">
+                Options
+              </div>
+              <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+                <li><a id="create-account-link" href="/sign-up">Create Account</a></li>
+                <li><a href="/sign-in">Sign In</a></li>
+                <li><a id="email-capture-link" href="#">Email Results</a></li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="bg-base-200 px-6 py-3">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">Agent Readiness Assessment</h2>
+        <div class="text-sm text-base-content/70">
+          Step {sessionData.progress.lastStepCompleted + 1} of {sessionData.progress.totalSteps}
+        </div>
+      </div>
+      <progress 
+        class="progress progress-primary w-full" 
+        value={sessionData.progress.completedSteps} 
+        max={sessionData.progress.totalSteps}
+      ></progress>
+      <div class="flex justify-between text-xs text-base-content/60 mt-1">
+        <span>{sessionData.progress.completedSteps} completed</span>
+        <span>{Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}% complete</span>
+      </div>
+    </div>
+
+    <!-- Main Wizard Content -->
+    <div class="container mx-auto px-4 py-6">
+      <div id="wizard-container" data-session={JSON.stringify(sessionData)}>
+        <!-- Wizard will be rendered here by React component -->
+        <div class="flex items-center justify-center min-h-96">
+          <div class="loading loading-spinner loading-lg"></div>
+          <span class="ml-4">Loading wizard...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Capture Modal -->
+    <dialog id="email-capture-modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Get Your Results via Email</h3>
+        <p class="py-4">
+          Enter your email address to receive your audit results and recommendations.
+          This won't create an account, just delivers your report.
+        </p>
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text">Email address</span>
+          </label>
+          <input 
+            type="email" 
+            id="email-input"
+            placeholder="your.email@company.com" 
+            class="input input-bordered w-full" 
+          />
+        </div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Cancel</button>
+            <button id="submit-email" class="btn btn-primary ml-2">Send Results</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Account Creation Prompt Modal -->
+    <dialog id="account-prompt-modal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Save Your Progress</h3>
+        <p class="py-4">
+          Create a free account to save your progress, access your results anytime, 
+          and get additional features like progress tracking and personalized recommendations.
+        </p>
+        <div class="bg-base-200 p-4 rounded-lg mb-4">
+          <h4 class="font-semibold mb-2">What you'll get:</h4>
+          <ul class="list-disc list-inside text-sm space-y-1">
+            <li>Secure progress saving across devices</li>
+            <li>Access to detailed analytics</li>
+            <li>Downloadable PDF reports</li>
+            <li>Progress tracking over time</li>
+          </ul>
+        </div>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Continue as Guest</button>
+            <a href="/sign-up" class="btn btn-primary ml-2">Create Account</a>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Scripts -->
+    <script>
+      import { ClerkJS } from '@clerk/clerk-js';
+      
+      const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+      
+      if (publishableKey) {
+        const clerk = new ClerkJS(publishableKey);
+        await clerk.load();
+        
+        // Handle sign out
+        const signOutBtn = document.getElementById('sign-out');
+        if (signOutBtn) {
+          signOutBtn.addEventListener('click', async () => {
+            await clerk.signOut();
+            window.location.href = '/';
+          });
+        }
+      }
+
+      // Handle email capture
+      const emailCaptureLink = document.getElementById('email-capture-link');
+      const emailModal = document.getElementById('email-capture-modal');
+      const emailInput = document.getElementById('email-input');
+      const submitEmailBtn = document.getElementById('submit-email');
+
+      if (emailCaptureLink && emailModal) {
+        emailCaptureLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          emailModal.showModal();
+        });
+      }
+
+      if (submitEmailBtn && emailInput) {
+        submitEmailBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const email = emailInput.value.trim();
+          
+          if (!email) {
+            alert('Please enter a valid email address');
+            return;
+          }
+
+          try {
+            // Store email for future report delivery
+            const response = await fetch('/api/guest/save-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                email,
+                sessionId: JSON.parse(document.getElementById('wizard-container').dataset.session).id
+              }),
+            });
+
+            if (response.ok) {
+              emailModal.close();
+              // Show success message
+              const toast = document.createElement('div');
+              toast.className = 'toast toast-top toast-end';
+              toast.innerHTML = `
+                <div class="alert alert-success">
+                  <span>✅ Email saved! Results will be sent when you complete the audit.</span>
+                </div>
+              `;
+              document.body.appendChild(toast);
+              setTimeout(() => toast.remove(), 3000);
+            } else {
+              throw new Error('Failed to save email');
+            }
+          } catch (error) {
+            console.error('Error saving email:', error);
+            alert('Failed to save email. Please try again.');
+          }
+        });
+      }
+
+      // Handle account creation prompt
+      const saveProgressPrompt = document.getElementById('save-progress-prompt');
+      const accountModal = document.getElementById('account-prompt-modal');
+
+      if (saveProgressPrompt && accountModal) {
+        saveProgressPrompt.addEventListener('click', (e) => {
+          e.preventDefault();
+          accountModal.showModal();
+        });
+      }
+
+      // Auto-prompt for account creation at 50% completion
+      const sessionData = JSON.parse(document.getElementById('wizard-container').dataset.session);
+      const completionPercentage = (sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100;
+      
+      if (!sessionData.isAuthenticated && completionPercentage >= 50 && !localStorage.getItem('account-prompt-shown')) {
+        setTimeout(() => {
+          if (accountModal) {
+            accountModal.showModal();
+            localStorage.setItem('account-prompt-shown', 'true');
+          }
+        }, 2000);
+      }
+    </script>
+
+    <!-- Load and render the wizard component -->
+    <script type="module">
+      import { WizardIsland } from '/src/components/islands/WizardIsland.tsx';
+      
+      const container = document.getElementById('wizard-container');
+      const sessionData = JSON.parse(container.dataset.session);
+      
+      // Render the wizard component
+      ReactDOM.render(
+        React.createElement(WizardIsland, { 
+          sessionData,
+          onProgress: (progress) => {
+            // Update progress bar
+            const progressBar = document.querySelector('.progress');
+            if (progressBar) {
+              progressBar.value = progress.completedSteps;
+            }
+            
+            // Update step counter
+            const stepCounter = document.querySelector('.navbar .text-sm');
+            if (stepCounter) {
+              stepCounter.textContent = `Step ${progress.lastStepCompleted + 1} of ${progress.totalSteps}`;
+            }
+          }
+        }),
+        container
+      );
+    </script>
+  </body>
+</html>

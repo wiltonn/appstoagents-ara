@@ -4,6 +4,7 @@ import type { WizardProgress, WizardAnswer, WizardStep } from '../types/wizard';
 import type { TotalScore, ScoringPreview } from '../types/scoring';
 import { WIZARD_CONFIG } from '../config/wizard';
 import { calculateScore, generatePreview } from '../lib/scoring';
+import { trpc } from '../utils/trpc';
 
 interface WizardState {
   // Current wizard state
@@ -42,7 +43,7 @@ interface WizardState {
   
   // Scoring actions
   toggleScorePreview: () => void;
-  recalculateScore: () => void;
+  recalculateScore: () => Promise<void>;
   
   // Internal methods
   updateComputedValues: () => void;
@@ -102,13 +103,15 @@ export const useWizardStore = create<WizardState>()(
       
       // Update computed values and recalculate score
       get().updateComputedValues();
-      get().recalculateScore();
+      // Fire and forget async scoring update
+      get().recalculateScore().catch(console.error);
     },
     
     setAnswers: (answers: Record<string, any>) => {
       set({ answers, error: undefined });
       get().updateComputedValues();
-      get().recalculateScore();
+      // Fire and forget async scoring update
+      get().recalculateScore().catch(console.error);
     },
     
     setSessionId: (sessionId: string) => {
@@ -190,24 +193,45 @@ export const useWizardStore = create<WizardState>()(
       set(state => ({ showScorePreview: !state.showScorePreview }));
     },
     
-    recalculateScore: () => {
+    recalculateScore: async () => {
       const { answers, currentStep } = get();
       try {
-        const currentScore = calculateScore(answers);
-        const scoringPreview = generatePreview(answers, currentStep);
+        // Use server-side scoring for more accurate results
+        const result = await trpc.wizard.calculateScore.query({
+          answers,
+          currentStep,
+        });
         
-        set({ 
-          currentScore, 
-          scoringPreview,
-          error: undefined,
-        });
+        if (result.success) {
+          set({ 
+            currentScore: result.currentScore, 
+            scoringPreview: result.scoringPreview,
+            error: undefined,
+          });
+        } else {
+          throw new Error('Server scoring calculation failed');
+        }
       } catch (error) {
-        console.error('Error calculating score:', error);
-        set({ 
-          error: 'Failed to calculate score',
-          currentScore: undefined,
-          scoringPreview: undefined,
-        });
+        console.error('Error calculating score via server:', error);
+        
+        // Fallback to client-side calculation
+        try {
+          const currentScore = calculateScore(answers);
+          const scoringPreview = generatePreview(answers, currentStep);
+          
+          set({ 
+            currentScore, 
+            scoringPreview,
+            error: undefined,
+          });
+        } catch (fallbackError) {
+          console.error('Fallback scoring also failed:', fallbackError);
+          set({ 
+            error: 'Failed to calculate score',
+            currentScore: undefined,
+            scoringPreview: undefined,
+          });
+        }
       }
     },
     

@@ -5,12 +5,16 @@ import { WizardStep } from '../wizard/WizardStep';
 import { ProgressBar } from '../wizard/ProgressBar';
 import { StepNavigation } from '../wizard/StepNavigation';
 import { ScorePreview } from '../wizard/ScorePreview';
+import { ChatInterface } from '../chat/ChatInterface';
+import type { ChatContext } from '../../types/chat';
 
 interface WizardIslandProps {
   sessionId?: string;
   userId?: string;
   onComplete?: (answers: Record<string, any>, sessionId: string) => void;
   className?: string;
+  showChat?: boolean;
+  chatVariant?: 'sidebar' | 'modal' | 'embedded';
 }
 
 export const WizardIsland: React.FC<WizardIslandProps> = ({
@@ -18,6 +22,8 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
   userId,
   onComplete,
   className = '',
+  showChat = true,
+  chatVariant = 'sidebar',
 }) => {
   const {
     currentStep,
@@ -39,7 +45,6 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     setLoading,
     setError,
     isStepValid,
-    loadProgress,
     toggleScorePreview,
     recalculateScore,
   } = useWizardStore();
@@ -47,6 +52,28 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [chatContext, setChatContext] = useState<ChatContext | null>(null);
+
+  // Update chat context helper - moved before useEffect
+  const updateChatContext = useCallback(() => {
+    if (!currentStepData) return;
+
+    const context: ChatContext = {
+      currentStep,
+      totalSteps,
+      stepTitle: currentStepData.title,
+      stepDescription: currentStepData.description,
+      currentAnswers: answers,
+      completedSteps: completedSteps.map(step => parseInt(step.replace('step_', ''))),
+      pillarScores: currentScore?.pillarScores.reduce((acc, pillar) => {
+        acc[pillar.pillar] = pillar.percentage;
+        return acc;
+      }, {} as Record<string, number>),
+      overallProgress: progress,
+    };
+
+    setChatContext(context);
+  }, [currentStep, totalSteps, currentStepData, answers, completedSteps, currentScore, progress]);
 
   // Initialize session
   useEffect(() => {
@@ -61,10 +88,20 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     }
   }, [sessionId, setSessionId]);
 
-  // Initial score calculation
+  // Initial score calculation and chat context setup
   useEffect(() => {
-    recalculateScore();
-  }, []);
+    const initializeScoring = async () => {
+      await recalculateScore();
+      updateChatContext();
+    };
+    
+    initializeScoring();
+  }, [recalculateScore, updateChatContext]);
+
+  // Update chat context when wizard state changes
+  useEffect(() => {
+    updateChatContext();
+  }, [updateChatContext]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -88,7 +125,7 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     return `wizard_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   };
 
-  const loadExistingProgress = async (sessionId: string) => {
+  const loadExistingProgress = async (_sessionId: string) => {
     try {
       setLoading(true);
       // TODO: Implement API call to load existing progress
@@ -241,8 +278,16 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
 
   const stepTitles = WIZARD_CONFIG.steps.map(step => step.title);
 
-  return (
-    <div className={`wizard-island max-w-4xl mx-auto ${className}`}>
+  // Handle chat context updates from chat interface
+  const handleChatContextUpdate = useCallback((newContext: ChatContext) => {
+    // If chat wants to navigate to a different step
+    if (newContext.currentStep !== currentStep && newContext.currentStep >= 1 && newContext.currentStep <= totalSteps) {
+      setCurrentStep(newContext.currentStep);
+    }
+  }, [currentStep, totalSteps, setCurrentStep]);
+
+  const wizardContent = (
+    <div className={`wizard-content ${showChat && chatVariant === 'sidebar' ? 'pr-8' : ''}`}>
       {/* Error Banner */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
@@ -289,6 +334,8 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
             answers={answers}
             onAnswerChange={handleAnswerChange}
             errors={validationErrors}
+            variant="enhanced"
+            showValidationSummary={true}
           />
         </div>
       )}
@@ -323,6 +370,7 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
           <div>Answers: {Object.keys(answers).length}</div>
           <div>Session ID: {useWizardStore.getState().sessionId}</div>
           <div>Step Valid: {isStepValid() ? 'Yes' : 'No'}</div>
+          <div>Chat Context: {chatContext ? 'Active' : 'None'}</div>
           {Object.keys(validationErrors).length > 0 && (
             <div className="mt-2">
               <div>Validation Errors:</div>
@@ -331,6 +379,75 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
           )}
         </div>
       )}
+    </div>
+  );
+
+  // Render with or without chat based on configuration
+  if (!showChat) {
+    return (
+      <div className={`wizard-island max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}>
+        {wizardContent}
+      </div>
+    );
+  }
+
+  if (chatVariant === 'sidebar') {
+    return (
+      <div className={`wizard-island-with-chat flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}>
+        {/* Main wizard content */}
+        <div className="flex-1 min-w-0">
+          <div className="max-w-4xl">
+            {wizardContent}
+          </div>
+        </div>
+        
+        {/* Chat sidebar */}
+        <div className="flex-shrink-0 ml-8">
+          <div className="sticky top-8">
+            <ChatInterface
+              sessionId={useWizardStore.getState().sessionId || 'unknown'}
+              context={chatContext || undefined}
+              onContextUpdate={handleChatContextUpdate}
+              variant="sidebar"
+              className="h-[calc(100vh-4rem)]"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (chatVariant === 'modal') {
+    return (
+      <div className={`wizard-island max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}>
+        {wizardContent}
+        
+        {/* Chat modal overlay - would typically be controlled by state */}
+        <ChatInterface
+          sessionId={useWizardStore.getState().sessionId || 'unknown'}
+          context={chatContext || undefined}
+          onContextUpdate={handleChatContextUpdate}
+          variant="modal"
+        />
+      </div>
+    );
+  }
+
+  // Embedded variant
+  return (
+    <div className={`wizard-island max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}>
+      {wizardContent}
+      
+      {/* Embedded chat */}
+      <div className="mt-8 border-t border-gray-200 pt-8">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Need Help?</h3>
+        <ChatInterface
+          sessionId={useWizardStore.getState().sessionId || 'unknown'}
+          context={chatContext || undefined}
+          onContextUpdate={handleChatContextUpdate}
+          variant="embedded"
+        />
+      </div>
     </div>
   );
 };

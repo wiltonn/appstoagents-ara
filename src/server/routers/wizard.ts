@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { router, publicProcedure, protectedProcedure, guestOrAuthProcedure } from '../trpc';
 import { db, getOrCreateAnonymousSession, getOrCreateUserSession } from '../../utils/db';
+import { scoringEngine } from '../../lib/scoring';
+import { getScoringConfig } from '../../config/scoring';
 
 export const wizardRouter = router({
   saveAnswer: guestOrAuthProcedure
@@ -98,13 +100,40 @@ export const wizardRouter = router({
           return acc;
         }, {} as Record<string, any>);
 
+        // Calculate real-time scoring preview
+        let scoringPreview = null;
+        let currentScore = null;
+        
+        try {
+          // Update scoring engine with appropriate config based on answers
+          const config = getScoringConfig(answersMap);
+          scoringEngine.updateConfig(config);
+          
+          // Generate scoring preview
+          scoringPreview = scoringEngine.generateScoringPreview(answersMap, currentStep);
+          currentScore = scoringEngine.calculateTotalScore(answersMap);
+          
+          // Update session with partial score
+          await db.auditSession.update({
+            where: { id: session.id },
+            data: { 
+              score: currentScore.totalScore,
+              updatedAt: new Date(),
+            },
+          });
+        } catch (error) {
+          console.error('Error calculating scoring preview:', error);
+        }
+
         return {
           sessionId: session.id,
           currentStep,
           totalSteps,
           completedSteps,
           answers: answersMap,
-          partialScore: session.score ? Number(session.score) : null,
+          partialScore: currentScore?.totalScore || (session.score ? Number(session.score) : null),
+          currentScore,
+          scoringPreview,
           status: session.status,
         };
       } catch (error) {
@@ -134,21 +163,86 @@ export const wizardRouter = router({
           },
         });
 
-        // TODO: Implement full scoring in Phase 1.5
-        // For now, return placeholder data
+        // Calculate final comprehensive score
+        const answersMap = updatedSession.answers.reduce((acc, answer) => {
+          acc[answer.questionKey] = answer.value;
+          return acc;
+        }, {} as Record<string, any>);
+
+        // Get appropriate scoring configuration and calculate final score
+        const config = getScoringConfig(answersMap);
+        scoringEngine.updateConfig(config);
+        const finalScore = scoringEngine.calculateTotalScore(answersMap);
+
+        // Update session with final score
+        await db.auditSession.update({
+          where: { id: updatedSession.id },
+          data: { 
+            score: finalScore.totalScore,
+            updatedAt: new Date(),
+          },
+        });
+
         return {
           success: true,
           sessionId: updatedSession.id,
-          score: {
-            total: 0,
-            pillars: [],
-          },
-          pdfJobId: null,
-          message: 'Audit submitted successfully. Scoring will be implemented in Phase 1.5',
+          score: finalScore,
+          pdfJobId: null, // Will be implemented in Phase 2.3
+          message: 'Audit submitted successfully with comprehensive scoring',
         };
       } catch (error) {
         console.error('Error submitting audit:', error);
         throw new Error('Failed to submit audit');
+      }
+    }),
+
+  calculateScore: guestOrAuthProcedure
+    .input(z.object({
+      answers: z.record(z.any()),
+      currentStep: z.number().optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      try {
+        // Get appropriate scoring configuration based on answers
+        const config = getScoringConfig(input.answers);
+        scoringEngine.updateConfig(config);
+        
+        // Calculate current score and preview
+        const currentScore = scoringEngine.calculateTotalScore(input.answers);
+        const scoringPreview = scoringEngine.generateScoringPreview(
+          input.answers, 
+          input.currentStep
+        );
+
+        return {
+          success: true,
+          currentScore,
+          scoringPreview,
+          configVersion: config.version,
+        };
+      } catch (error) {
+        console.error('Error calculating score:', error);
+        throw new Error('Failed to calculate score');
+      }
+    }),
+
+  updateScoringConfig: protectedProcedure
+    .input(z.object({
+      config: z.any(), // ScoringConfig type - would need proper zod schema in production
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Update the scoring engine configuration (hot-reload)
+        scoringEngine.updateConfig(input.config);
+        
+        return {
+          success: true,
+          message: 'Scoring configuration updated successfully',
+          version: input.config.version,
+        };
+      } catch (error) {
+        console.error('Error updating scoring config:', error);
+        throw new Error('Failed to update scoring configuration');
       }
     }),
 });

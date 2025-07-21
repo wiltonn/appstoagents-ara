@@ -52,6 +52,11 @@ model AuditSession {
   userId       String?
   anonymousId  String?
   
+  // Guest user fields
+  guestEmail       String?   // Email for guest users to receive reports
+  emailCapturedAt  DateTime? // When email was captured
+  companyName      String?   // Optional company name
+  
   // Status and scoring
   status       AuditStatus @default(DRAFT)
   score        Decimal?    @db.Decimal(5,2) // 0.00 to 999.99
@@ -76,6 +81,7 @@ model AuditSession {
   @@map("audit_sessions")
   @@index([userId])
   @@index([anonymousId])
+  @@index([guestEmail])
   @@index([status])
   @@index([startedAt])
   @@unique([anonymousId], name: "unique_anonymous_session")

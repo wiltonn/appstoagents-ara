@@ -44,6 +44,7 @@ export interface Question {
       value: any;
     };
   };
+  enhancedConditionalLogic?: import('./conditionalLogic').EnhancedConditionalLogic;
 }
 
 export interface WizardStep {
@@ -54,6 +55,7 @@ export interface WizardStep {
   order: number;
   isOptional?: boolean;
   estimatedTimeMinutes?: number;
+  conditionalLogic?: import('./conditionalLogic').StepConditionalLogic;
 }
 
 export interface WizardAnswer {

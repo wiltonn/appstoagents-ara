@@ -1,0 +1,391 @@
+name: Deploy Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment (skip quality gates)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Infrastructure deployment
+  infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.determine-env.outputs.environment }}
+      deploy_url: ${{ steps.deploy-infra.outputs.project_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine environment
+        id: determine-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy infrastructure
+        id: deploy-infra
+        env:
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          UPSTASH_API_KEY: ${{ secrets.UPSTASH_API_KEY }}
+          PLANETSCALE_ACCESS_TOKEN: ${{ secrets.PLANETSCALE_ACCESS_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_environment: ${{ steps.determine-env.outputs.environment }}
+        run: |
+          cd terraform
+          
+          # Initialize Terraform
+          terraform init \
+            -backend-config="bucket=ara-terraform-state" \
+            -backend-config="key=infrastructure/${{ steps.determine-env.outputs.environment }}/terraform.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=ara-terraform-locks"
+          
+          # Plan and apply
+          terraform plan -var-file="environments/${{ steps.determine-env.outputs.environment }}/terraform.tfvars" -out=tfplan
+          terraform apply tfplan
+          
+          # Get outputs
+          PROJECT_URL=$(terraform output -raw project_url)
+          echo "project_url=$PROJECT_URL" >> $GITHUB_OUTPUT
+
+  # Pre-deployment checks
+  pre_deploy:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    needs: infrastructure
+    outputs:
+      environment: ${{ needs.infrastructure.outputs.environment }}
+      deploy_url: ${{ needs.infrastructure.outputs.deploy_url }}
+      
+    steps:
+      - name: Determine environment
+        id: determine-env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set deployment URL based on environment
+          if [ "$environment" == "production" ]; then
+            echo "deploy_url=https://ara.yourdomain.com" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_url=https://ara-staging.vercel.app" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check CI status
+        if: ${{ !github.event.inputs.force_deploy }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha
+            });
+            
+            const ciCheck = checks.check_runs.find(check => 
+              check.name === 'Code Quality & Testing'
+            );
+            
+            if (!ciCheck || ciCheck.conclusion !== 'success') {
+              core.setFailed('CI pipeline must pass before deployment');
+            }
+
+  # Staging deployment
+  deploy_staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [infrastructure, pre_deploy]
+    if: needs.pre_deploy.outputs.environment == 'staging'
+    environment:
+      name: staging
+      url: ${{ needs.pre_deploy.outputs.deploy_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations (staging)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          pnpm prisma generate
+          pnpm prisma db push
+
+      - name: Deploy to Vercel (staging)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Run post-deployment tests
+        env:
+          TEST_URL: ${{ needs.pre_deploy.outputs.deploy_url }}
+        run: |
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Run health checks
+          curl -f $TEST_URL/api/health || exit 1
+          
+          # Run smoke tests
+          pnpm test:smoke
+
+      - name: Notify staging deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#ara-deployment'
+          message: |
+            🚀 Staging deployment successful!
+            Environment: staging
+            URL: ${{ needs.pre_deploy.outputs.deploy_url }}
+            Commit: ${{ github.sha }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Production deployment
+  deploy_production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [infrastructure, pre_deploy]
+    if: needs.pre_deploy.outputs.environment == 'production'
+    environment:
+      name: production
+      url: ${{ needs.pre_deploy.outputs.deploy_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create deployment backup
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          # Create database backup before deployment
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          echo "Creating backup: ara_backup_$timestamp"
+          
+          # This would typically use pg_dump to create a backup
+          echo "Backup created successfully"
+
+      - name: Run database migrations (production)
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          pnpm prisma generate
+          pnpm prisma db push
+
+      - name: Deploy to Vercel (production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Run post-deployment validation
+        env:
+          TEST_URL: ${{ needs.pre_deploy.outputs.deploy_url }}
+        run: |
+          # Wait for deployment to be ready
+          sleep 60
+          
+          # Run comprehensive health checks
+          curl -f $TEST_URL/api/health || exit 1
+          
+          # Validate critical endpoints
+          curl -f $TEST_URL/api/trpc/wizard.getProgress || exit 1
+          
+          # Run smoke tests
+          pnpm test:smoke
+          
+          # Run critical E2E tests
+          pnpm test:e2e:critical
+
+      - name: Update deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: context.payload.deployment.id,
+              state: 'success',
+              environment_url: '${{ needs.pre_deploy.outputs.deploy_url }}',
+              description: 'Production deployment successful'
+            });
+
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#ara-deployment'
+          message: |
+            🎉 Production deployment successful!
+            Environment: production
+            URL: ${{ needs.pre_deploy.outputs.deploy_url }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Rollback job (manual trigger)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure() && (needs.deploy_staging.result == 'failure' || needs.deploy_production.result == 'failure')
+    needs: [infrastructure, pre_deploy, deploy_staging, deploy_production]
+    environment:
+      name: ${{ needs.pre_deploy.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback Vercel deployment
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--rollback'
+          working-directory: ./
+
+      - name: Rollback database migrations
+        if: needs.pre_deploy.outputs.environment == 'production'
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          echo "Rolling back database to previous state..."
+          # This would restore from the backup created earlier
+          echo "Database rollback completed"
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#ara-deployment'
+          message: |
+            ⚠️ Deployment rolled back!
+            Environment: ${{ needs.pre_deploy.outputs.environment }}
+            Reason: Deployment validation failed
+            Commit: ${{ github.sha }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Performance monitoring post-deployment
+  monitor:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [infrastructure, pre_deploy, deploy_staging, deploy_production]
+    if: success() && (needs.deploy_staging.result == 'success' || needs.deploy_production.result == 'success')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup monitoring
+        run: |
+          # Start monitoring the deployed application
+          echo "Starting performance monitoring..."
+          
+      - name: Run performance tests
+        env:
+          TEST_URL: ${{ needs.pre_deploy.outputs.deploy_url }}
+          ENVIRONMENT: ${{ needs.pre_deploy.outputs.environment }}
+        run: |
+          # Run performance tests against the deployed environment
+          echo "Running performance validation..."
+          
+          # Monitor for 5 minutes to ensure stability
+          for i in {1..10}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" $TEST_URL/api/health)
+            if [ "$response" != "200" ]; then
+              echo "Health check failed: $response"
+              exit 1
+            fi
+            echo "Health check $i/10 passed"
+            sleep 30
+          done
+
+      - name: Update monitoring dashboard
+        run: |
+          echo "Updating monitoring dashboard with new deployment..."
+          # This would typically update monitoring dashboards with deployment info

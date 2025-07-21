@@ -3,12 +3,12 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Wizard Demo - ARA System">
-  <main class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Agent Readiness Audit</h1>
-          <p class="text-gray-600">
+  <main class="min-h-screen bg-gray-50 py-4 sm:py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+        <div class="mb-6 sm:mb-8">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Agent Readiness Audit</h1>
+          <p class="text-gray-600 text-sm sm:text-base">
             Complete this comprehensive assessment to evaluate your organization's readiness for AI agent implementation.
           </p>
         </div>
@@ -60,7 +60,9 @@ import Layout from '../layouts/Layout.astro';
       root.render(
         React.createElement(WizardIsland, {
           onComplete: handleComplete,
-          className: 'wizard-demo'
+          className: 'wizard-demo',
+          showChat: true,
+          chatVariant: 'sidebar'
         })
       );
     }
