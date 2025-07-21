@@ -77,7 +77,7 @@ export function PerformanceDashboard() {
   if (error) {
     return (
       <div className="alert alert-error">
-        <span>Failed to load performance metrics: {error.message}</span>
+        <span>Failed to load performance metrics: {error instanceof Error ? error.message : 'Unknown error'}</span>
         <button className="btn btn-sm" onClick={() => refetch()}>
           Retry
         </button>

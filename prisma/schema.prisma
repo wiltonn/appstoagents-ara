@@ -51,7 +51,7 @@ model AuditSession {
   
   // Identity (either userId OR anonymousId)
   userId       String?
-  anonymousId  String?
+  anonymousId  String?  @unique(map: "unique_anonymous_session")
   
   // Guest user fields
   guestEmail       String?   // Email for guest users to receive reports
@@ -85,7 +85,6 @@ model AuditSession {
   @@index([guestEmail])
   @@index([status])
   @@index([startedAt])
-  @@unique([anonymousId], name: "unique_anonymous_session")
 }
 
 enum AuditStatus {

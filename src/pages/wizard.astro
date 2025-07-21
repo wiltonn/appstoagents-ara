@@ -3,6 +3,7 @@ export const prerender = false;
 
 import { generateAnonymousId, getOrCreateAnonymousSession, getOrCreateUserSession } from '../utils/db';
 import { setAnonymousIdCookie, getAnonymousIdFromCookie } from '../utils/auth';
+import { WizardIsland } from '../components/islands/WizardIsland';
 
 // Get authentication info from middleware
 const userId = Astro.locals.userId;
@@ -53,24 +54,27 @@ const sessionData = {
 };
 ---
 
-<html lang="en">
+<html lang="en" data-theme="appstoagents-dark">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <title>Agent Readiness Audit - Wizard</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   </head>
-  <body class="min-h-screen bg-base-100">
+  <body class="min-h-screen bg-base-100 text-base-content antialiased">
     <!-- Navigation Bar -->
-    <div class="navbar bg-base-200">
+    <div class="navbar bg-base-200/50 backdrop-blur-sm border-b border-base-300/20">
       <div class="flex-1">
-        <a href="/" class="btn btn-ghost text-xl">ARA System</a>
-        <div class="breadcrumbs text-sm ml-4">
+        <a href="/" class="btn btn-ghost text-xl font-semibold text-primary hover:text-primary-focus transition-colors duration-200">
+          ARA System
+        </a>
+        <div class="breadcrumbs text-sm ml-4 text-base-content/70">
           <ul>
-            <li><a href="/">Home</a></li>
+            <li><a href="/" class="hover:text-primary transition-colors duration-200">Home</a></li>
             <li>Agent Readiness Audit</li>
           </ul>
         </div>
@@ -115,34 +119,45 @@ const sessionData = {
       </div>
     </div>
 
-    <!-- Progress Bar -->
-    <div class="bg-base-200 px-6 py-3">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="text-lg font-semibold">Agent Readiness Assessment</h2>
-        <div class="text-sm text-base-content/70">
-          Step {sessionData.progress.lastStepCompleted + 1} of {sessionData.progress.totalSteps}
+    <!-- Enhanced Progress Bar with Modern Styling -->
+    <div class="bg-gradient-to-r from-base-200 to-base-300 px-6 py-6 border-b border-base-300/50">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h1 class="text-2xl font-bold text-base-content mb-1">Agent Readiness Assessment</h1>
+            <p class="text-sm text-base-content/70">Complete this comprehensive audit to assess your AI agent implementation readiness</p>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-bold text-primary">
+              Step {sessionData.progress.lastStepCompleted + 1}
+            </div>
+            <div class="text-sm text-base-content/70">of {sessionData.progress.totalSteps}</div>
+          </div>
         </div>
-      </div>
-      <progress 
-        class="progress progress-primary w-full" 
-        value={sessionData.progress.completedSteps} 
-        max={sessionData.progress.totalSteps}
-      ></progress>
-      <div class="flex justify-between text-xs text-base-content/60 mt-1">
-        <span>{sessionData.progress.completedSteps} completed</span>
-        <span>{Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}% complete</span>
+        
+        <!-- Modern Progress Bar -->
+        <div class="relative">
+          <div class="h-3 bg-base-300 rounded-full overflow-hidden shadow-inner">
+            <div 
+              class="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full transition-all duration-500 ease-out shadow-lg"
+              style={`width: ${Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}%`}
+            ></div>
+          </div>
+          <div class="flex justify-between text-sm text-base-content/80 mt-3">
+            <span class="font-medium">{sessionData.progress.completedSteps} of {sessionData.progress.totalSteps} completed</span>
+            <span class="font-bold text-primary">{Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}% complete</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Main Wizard Content -->
     <div class="container mx-auto px-4 py-6">
-      <div id="wizard-container" data-session={JSON.stringify(sessionData)}>
-        <!-- Wizard will be rendered here by React component -->
-        <div class="flex items-center justify-center min-h-96">
-          <div class="loading loading-spinner loading-lg"></div>
-          <span class="ml-4">Loading wizard...</span>
-        </div>
-      </div>
+      <!-- Astro Island for React Component -->
+      <WizardIsland 
+        sessionData={sessionData}
+        client:load
+      />
     </div>
 
     <!-- Email Capture Modal -->
@@ -305,33 +320,5 @@ const sessionData = {
       }
     </script>
 
-    <!-- Load and render the wizard component -->
-    <script type="module">
-      import { WizardIsland } from '/src/components/islands/WizardIsland.tsx';
-      
-      const container = document.getElementById('wizard-container');
-      const sessionData = JSON.parse(container.dataset.session);
-      
-      // Render the wizard component
-      ReactDOM.render(
-        React.createElement(WizardIsland, { 
-          sessionData,
-          onProgress: (progress) => {
-            // Update progress bar
-            const progressBar = document.querySelector('.progress');
-            if (progressBar) {
-              progressBar.value = progress.completedSteps;
-            }
-            
-            // Update step counter
-            const stepCounter = document.querySelector('.navbar .text-sm');
-            if (stepCounter) {
-              stepCounter.textContent = `Step ${progress.lastStepCompleted + 1} of ${progress.totalSteps}`;
-            }
-          }
-        }),
-        container
-      );
-    </script>
   </body>
 </html>

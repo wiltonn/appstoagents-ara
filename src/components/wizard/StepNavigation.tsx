@@ -51,11 +51,11 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
           onClick={onPrevious}
           disabled={!canGoPrevious || isLoading}
           className={`
-            flex items-center justify-center px-4 py-3 sm:py-2 text-sm font-medium rounded-md
-            transition-colors duration-200 touch-manipulation
+            flex items-center justify-center px-6 py-3 sm:py-2 text-sm font-medium rounded-lg
+            transition-all duration-200 touch-manipulation border-2
             ${canGoPrevious && !isLoading
-              ? 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-              : 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+              ? 'text-base-content bg-base-100 border-base-300 hover:bg-base-200 hover:border-primary-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500'
+              : 'text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed'
             }
           `}
         >
@@ -119,17 +119,18 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
           </button>
         )}
 
-        {/* Next/Complete Button */}
+        {/* Next/Complete Button - Enhanced CTA */}
         <button
           type="button"
           onClick={onNext}
           disabled={!canGoNext || isLoading}
           className={`
-            flex items-center justify-center px-6 py-3 sm:py-2 text-sm font-medium rounded-md
-            transition-colors duration-200 touch-manipulation min-h-[44px] sm:min-h-0
+            flex items-center justify-center px-8 py-4 sm:py-3 text-base font-semibold rounded-lg
+            transition-all duration-300 ease-out touch-manipulation min-h-[52px] sm:min-h-[48px]
+            transform active:scale-95 shadow-lg
             ${canGoNext && !isLoading
-              ? 'text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-              : 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+              ? 'text-white bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-primary-500/50 focus:ring-offset-2'
+              : 'text-white bg-gradient-to-r from-primary-400 to-primary-300 cursor-not-allowed shadow-lg opacity-60'
             }
           `}
         >
@@ -225,9 +226,9 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
           </div>
         )}
 
-        {/* Standard Step Information */}
+        {/* Step Information and Progress Guidance */}
         <div className="text-center">
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-base-content/60">
             {isLastStep 
               ? 'Review your answers and complete the audit'
               : conditionalNextStep 
@@ -235,6 +236,12 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
                 : `Step ${currentStep} of ${totalSteps} - Continue when ready`
             }
           </div>
+          {/* Show completion hint when CTA is disabled */}
+          {!canGoNext && !isLoading && (
+            <div className="mt-2 text-xs text-primary/80 font-medium">
+              💡 Complete all required fields above to continue
+            </div>
+          )}
         </div>
       </div>
     </div>

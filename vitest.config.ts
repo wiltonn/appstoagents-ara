@@ -91,7 +91,7 @@ export default defineConfig({
     watch: false,
     
     // Reporters
-    reporter: ['verbose', 'json', 'html'],
+    reporters: ['verbose', 'json', 'html'],
     outputFile: {
       json: './test-results/vitest-results.json',
       html: './test-results/vitest-report.html',

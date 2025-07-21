@@ -8,7 +8,22 @@ import { ScorePreview } from '../wizard/ScorePreview';
 import { ChatInterface } from '../chat/ChatInterface';
 import type { ChatContext } from '../../types/chat';
 
+interface SessionData {
+  id: string;
+  status: string;
+  isAuthenticated: boolean;
+  userId: string | null;
+  anonymousId: string | null;
+  answers: any[];
+  progress: {
+    totalSteps: number;
+    completedSteps: number;
+    lastStepCompleted: number;
+  };
+}
+
 interface WizardIslandProps {
+  sessionData?: SessionData;
   sessionId?: string;
   userId?: string;
   onComplete?: (answers: Record<string, any>, sessionId: string) => void;
@@ -18,6 +33,7 @@ interface WizardIslandProps {
 }
 
 export const WizardIsland: React.FC<WizardIslandProps> = ({
+  sessionData,
   sessionId,
   userId,
   onComplete,
@@ -77,16 +93,24 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
 
   // Initialize session
   useEffect(() => {
-    if (sessionId) {
-      setSessionId(sessionId);
+    const effectiveSessionId = sessionData?.id || sessionId;
+    if (effectiveSessionId) {
+      setSessionId(effectiveSessionId);
       // Load existing progress if available
-      loadExistingProgress(sessionId);
+      if (sessionData?.answers) {
+        // Load answers from sessionData
+        sessionData.answers.forEach(answer => {
+          setAnswer(answer.questionId, answer.value);
+        });
+      } else {
+        loadExistingProgress(effectiveSessionId);
+      }
     } else {
       // Generate new session ID
       const newSessionId = generateSessionId();
       setSessionId(newSessionId);
     }
-  }, [sessionId, setSessionId]);
+  }, [sessionData, sessionId, setSessionId, setAnswer]);
 
   // Initial score calculation and chat context setup
   useEffect(() => {
@@ -287,24 +311,25 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
   }, [currentStep, totalSteps, setCurrentStep]);
 
   const wizardContent = (
-    <div className={`wizard-content ${showChat && chatVariant === 'sidebar' ? 'pr-8' : ''}`}>
-      {/* Error Banner */}
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                {error}
-              </h3>
+    <div className={`wizard-content bg-base-100 rounded-xl shadow-lg border border-base-300/50 ${showChat && chatVariant === 'sidebar' ? 'pr-8' : ''}`}>
+      <div className="p-8">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 bg-error/10 border border-error/20 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-error" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-error">
+                  {error}
+                </h3>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Progress Bar */}
       <div className="mb-8">
@@ -340,45 +365,46 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
         </div>
       )}
 
-      {/* Step Navigation */}
-      <div className="border-t border-gray-200 pt-6">
-        <StepNavigation
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          canGoNext={isStepValid()}
-          canGoPrevious={currentStep > 1}
-          isLoading={isLoading}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onSave={handleManualSave}
-          showSaveButton={true}
-        />
+        {/* Step Navigation */}
+        <div className="border-t border-base-300/50 pt-8 mt-8">
+          <StepNavigation
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            canGoNext={isStepValid()}
+            canGoPrevious={currentStep > 1}
+            isLoading={isLoading}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSave={handleManualSave}
+            showSaveButton={true}
+          />
+        </div>
+
+        {/* Auto-save Status */}
+        {lastSaved && (
+          <div className="mt-4 text-center text-xs text-base-content/60">
+            Last saved: {lastSaved.toLocaleTimeString()}
+          </div>
+        )}
+
+        {/* Debug Info (development only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 p-4 bg-base-200 rounded-md text-xs text-base-content/60">
+            <div>Current Step: {currentStep}/{totalSteps}</div>
+            <div>Progress: {Math.round(progress)}%</div>
+            <div>Answers: {Object.keys(answers).length}</div>
+            <div>Session ID: {useWizardStore.getState().sessionId}</div>
+            <div>Step Valid: {isStepValid() ? 'Yes' : 'No'}</div>
+            <div>Chat Context: {chatContext ? 'Active' : 'None'}</div>
+            {Object.keys(validationErrors).length > 0 && (
+              <div className="mt-2">
+                <div>Validation Errors:</div>
+                <pre className="text-xs">{JSON.stringify(validationErrors, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Auto-save Status */}
-      {lastSaved && (
-        <div className="mt-4 text-center text-xs text-gray-500">
-          Last saved: {lastSaved.toLocaleTimeString()}
-        </div>
-      )}
-
-      {/* Debug Info (development only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-8 p-4 bg-gray-100 rounded-md text-xs text-gray-600">
-          <div>Current Step: {currentStep}/{totalSteps}</div>
-          <div>Progress: {Math.round(progress)}%</div>
-          <div>Answers: {Object.keys(answers).length}</div>
-          <div>Session ID: {useWizardStore.getState().sessionId}</div>
-          <div>Step Valid: {isStepValid() ? 'Yes' : 'No'}</div>
-          <div>Chat Context: {chatContext ? 'Active' : 'None'}</div>
-          {Object.keys(validationErrors).length > 0 && (
-            <div className="mt-2">
-              <div>Validation Errors:</div>
-              <pre className="text-xs">{JSON.stringify(validationErrors, null, 2)}</pre>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 

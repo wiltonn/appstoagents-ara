@@ -141,7 +141,7 @@ export function SecurityAuditDashboard() {
   if (error) {
     return (
       <div className="alert alert-error">
-        <span>Failed to load security audit: {error.message}</span>
+        <span>Failed to load security audit: {error instanceof Error ? error.message : 'Unknown error'}</span>
         <button className="btn btn-sm" onClick={() => refetch()}>
           Retry
         </button>

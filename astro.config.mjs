@@ -151,7 +151,7 @@ export default defineConfig({
     // Worker optimization
     worker: {
       format: 'es',
-      plugins: [],
+      plugins: () => [],
     },
   },
   

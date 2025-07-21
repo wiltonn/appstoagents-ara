@@ -5,66 +5,125 @@ export const prerender = false;
 const userId = Astro.locals.userId;
 ---
 
-<html lang="en">
+<html lang="en" data-theme="appstoagents-dark">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 		<title>ARA - Agent Readiness Audit</title>
 	</head>
-	<body class="min-h-screen bg-base-100">
-		<div class="navbar bg-base-200">
+	<body class="min-h-screen bg-base-100 text-base-content antialiased">
+		<div class="navbar bg-base-200/50 backdrop-blur-sm border-b border-base-300/20">
 			<div class="flex-1">
-				<a class="btn btn-ghost text-xl">ARA System</a>
+				<a class="btn btn-ghost text-xl font-semibold text-primary hover:text-primary-focus transition-colors duration-200">
+					ARA System
+				</a>
 			</div>
 			<div class="flex-none">
 				{userId ? (
-					<div class="flex gap-2">
-						<a href="/dashboard" class="btn btn-primary">Dashboard</a>
+					<div class="flex gap-3">
+						<a href="/dashboard" class="btn btn-primary hover:scale-105 transition-transform duration-200">
+							Dashboard
+						</a>
 						<div class="dropdown dropdown-end">
-							<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+							<div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar hover:scale-105 transition-transform duration-200">
 								<div class="w-10 rounded-full">
-									<div class="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+									<div class="bg-primary/20 text-primary border border-primary/30 rounded-full w-10 h-10 flex items-center justify-center">
 										<span class="text-lg">👤</span>
 									</div>
 								</div>
 							</div>
-							<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-								<li><a href="/dashboard">Dashboard</a></li>
-								<li><a id="sign-out">Sign out</a></li>
+							<ul tabindex="0" class="menu menu-sm dropdown-content bg-base-200 border border-base-300/30 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl backdrop-blur-sm">
+								<li><a href="/dashboard" class="hover:bg-primary/10 transition-colors duration-200">Dashboard</a></li>
+								<li><a id="sign-out" class="hover:bg-error/10 text-error transition-colors duration-200">Sign out</a></li>
 							</ul>
 						</div>
 					</div>
 				) : (
-					<div class="flex gap-2">
-						<a href="/sign-in" class="btn btn-outline">Sign In</a>
-						<a href="/sign-up" class="btn btn-primary">Sign Up</a>
+					<div class="flex gap-3">
+						<a href="/sign-in" class="btn btn-outline border-primary/30 hover:border-primary hover:bg-primary/10 transition-all duration-200">
+							Sign In
+						</a>
+						<a href="/sign-up" class="btn btn-primary hover:scale-105 transition-transform duration-200">
+							Sign Up
+						</a>
 					</div>
 				)}
 			</div>
 		</div>
 
-		<div class="hero min-h-screen bg-base-100">
-			<div class="hero-content text-center">
-				<div class="max-w-md">
-					<h1 class="text-5xl font-bold">Agent Readiness Audit</h1>
-					<p class="py-6">
-						Assess your organization's readiness for AI agent implementation. 
-						Get personalized recommendations and a comprehensive roadmap.
+		<div class="hero min-h-screen bg-gradient-to-br from-base-100 via-base-100 to-base-200/30 relative overflow-hidden">
+			<!-- Background gradient overlay -->
+			<div class="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent"></div>
+			
+			<div class="hero-content text-center relative z-10">
+				<div class="max-w-4xl animate-fade-in">
+					<h1 class="text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+						Agent Readiness Audit
+					</h1>
+					<p class="py-8 text-xl lg:text-2xl text-base-content/80 font-light leading-relaxed max-w-3xl mx-auto">
+						Assess your organization's readiness for AI agent implementation with our comprehensive audit system. 
+						Get personalized recommendations and a strategic roadmap for AI transformation.
 					</p>
-					<div class="flex flex-col gap-4">
+					<div class="flex flex-col gap-6 animate-slide-up">
 						{userId ? (
-							<a href="/wizard" class="btn btn-primary btn-lg">Continue Your Audit</a>
+							<a href="/wizard" class="btn btn-primary btn-lg px-8 py-4 text-lg hover:scale-105 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border-0">
+								<span class="flex items-center gap-2">
+									Continue Your Audit
+									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+									</svg>
+								</span>
+							</a>
 						) : (
 							<>
-								<a href="/wizard" class="btn btn-primary btn-lg">Start Free Audit</a>
-								<div class="divider">OR</div>
-								<div class="text-sm text-base-content/70">
-									<a href="/sign-up" class="link">Create an account</a> to save your progress and access advanced features
+								<a href="/wizard" class="btn btn-primary btn-lg px-8 py-4 text-lg hover:scale-105 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border-0">
+									<span class="flex items-center gap-2">
+										Start Free Audit
+										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+										</svg>
+									</span>
+								</a>
+								<div class="divider text-base-content/40 font-light">OR</div>
+								<div class="text-base text-base-content/60 bg-base-200/30 backdrop-blur-sm rounded-lg p-4 border border-base-300/20">
+									<a href="/sign-up" class="link link-primary font-medium hover:text-accent transition-colors duration-200">Create an account</a> 
+									<span class="mx-2">to save your progress and access advanced features</span>
 								</div>
 							</>
 						)}
+					</div>
+					
+					<!-- Feature highlights -->
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 text-sm">
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-primary/30 transition-colors duration-300">
+							<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								</svg>
+							</div>
+							<span class="font-medium text-base-content/80">Comprehensive Assessment</span>
+						</div>
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-accent/30 transition-colors duration-300">
+							<div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+								</svg>
+							</div>
+							<span class="font-medium text-base-content/80">Instant Results</span>
+						</div>
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-success/30 transition-colors duration-300">
+							<div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+								</svg>
+							</div>
+							<span class="font-medium text-base-content/80">Strategic Roadmap</span>
+						</div>
 					</div>
 				</div>
 			</div>
