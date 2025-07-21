@@ -67,15 +67,16 @@ const sessionData = {
   </head>
   <body class="min-h-screen bg-base-100 text-base-content antialiased">
     <!-- Navigation Bar -->
-    <div class="navbar bg-base-200/50 backdrop-blur-sm border-b border-base-300/20">
+    <div class="navbar bg-base-200 border-b border-base-300/20">
       <div class="flex-1">
-        <a href="/" class="btn btn-ghost text-xl font-semibold text-primary hover:text-primary-focus transition-colors duration-200">
-          ARA System
+        <a href="/" class="btn btn-ghost text-xl font-bold text-primary hover:text-primary-focus transition-all duration-300 hover:scale-105">
+          <span class="text-primary">ARA</span>
+          <span class="ml-1">System</span>
         </a>
         <div class="breadcrumbs text-sm ml-4 text-base-content/70">
           <ul>
-            <li><a href="/" class="hover:text-primary transition-colors duration-200">Home</a></li>
-            <li>Agent Readiness Audit</li>
+            <li><a href="/" class="hover:text-primary transition-colors duration-200 hover:scale-105">Home</a></li>
+            <li><span class="text-primary font-medium">Agent Readiness Audit</span></li>
           </ul>
         </div>
       </div>
@@ -119,70 +120,96 @@ const sessionData = {
       </div>
     </div>
 
-    <!-- Enhanced Progress Bar with Modern Styling -->
-    <div class="bg-gradient-to-r from-base-200 to-base-300 px-6 py-6 border-b border-base-300/50">
+    <!-- Progress Bar -->
+    <div class="bg-base-200 px-6 py-8 border-b border-base-300/20">
       <div class="max-w-4xl mx-auto">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-base-content mb-1">Agent Readiness Assessment</h1>
-            <p class="text-sm text-base-content/70">Complete this comprehensive audit to assess your AI agent implementation readiness</p>
+            <h1 class="text-3xl font-bold text-base-content mb-2">
+              Agent Readiness Assessment
+            </h1>
+            <p class="text-base text-base-content/80 max-w-2xl leading-relaxed">
+              Complete this comprehensive audit to assess your AI agent implementation readiness and unlock actionable insights
+            </p>
           </div>
           <div class="text-right">
-            <div class="text-3xl font-bold text-primary">
-              Step {sessionData.progress.lastStepCompleted + 1}
+            <div>
+              <div class="text-4xl font-bold text-primary">
+                Step {sessionData.progress.lastStepCompleted + 1}
+              </div>
+              <div class="text-sm text-base-content/70 mt-1">of {sessionData.progress.totalSteps} total</div>
             </div>
-            <div class="text-sm text-base-content/70">of {sessionData.progress.totalSteps}</div>
           </div>
         </div>
         
-        <!-- Modern Progress Bar -->
-        <div class="relative">
-          <div class="h-3 bg-base-300 rounded-full overflow-hidden shadow-inner">
+        <!-- Progress Bar -->
+        <div>
+          <div class="h-4 bg-base-300 rounded-full overflow-hidden">
             <div 
-              class="h-full bg-gradient-to-r from-primary-500 to-primary-400 rounded-full transition-all duration-500 ease-out shadow-lg"
+              class="h-full bg-primary rounded-full transition-all duration-300"
               style={`width: ${Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}%`}
-            ></div>
+            >
+            </div>
           </div>
-          <div class="flex justify-between text-sm text-base-content/80 mt-3">
-            <span class="font-medium">{sessionData.progress.completedSteps} of {sessionData.progress.totalSteps} completed</span>
-            <span class="font-bold text-primary">{Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}% complete</span>
+          <div class="flex justify-between text-sm text-base-content/80 mt-4">
+            <span class="font-medium flex items-center gap-2">
+              <span class="w-2 h-2 bg-primary rounded-full"></span>
+              {sessionData.progress.completedSteps} of {sessionData.progress.totalSteps} completed
+            </span>
+            <span class="font-bold text-primary text-lg">
+              {Math.round((sessionData.progress.completedSteps / sessionData.progress.totalSteps) * 100)}%
+            </span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Main Wizard Content -->
-    <div class="container mx-auto px-4 py-6">
-      <!-- Astro Island for React Component -->
-      <WizardIsland 
-        sessionData={sessionData}
-        client:load
-      />
+    <div class="container mx-auto px-4 py-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="bg-base-100 rounded-lg border border-base-300/20">
+          <!-- Astro Island for React Component -->
+          <WizardIsland 
+            sessionData={sessionData}
+            client:load
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Email Capture Modal -->
     <dialog id="email-capture-modal" class="modal">
-      <div class="modal-box">
-        <h3 class="font-bold text-lg">Get Your Results via Email</h3>
-        <p class="py-4">
+      <div class="modal-box max-w-lg bg-base-100 border border-base-300/30">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="text-2xl">📧</span>
+          </div>
+          <h3 class="font-bold text-xl text-base-content">
+            Get Your Results via Email
+          </h3>
+        </div>
+        <p class="text-base-content/80 text-center mb-6 leading-relaxed">
           Enter your email address to receive your audit results and recommendations.
           This won't create an account, just delivers your report.
         </p>
         <div class="form-control w-full">
           <label class="label">
-            <span class="label-text">Email address</span>
+            <span class="label-text font-medium">Email address</span>
           </label>
           <input 
             type="email" 
             id="email-input"
             placeholder="your.email@company.com" 
-            class="input input-bordered w-full" 
+            class="input input-bordered w-full bg-base-200/50 backdrop-blur-sm border-base-300/30 focus:border-primary focus:bg-base-100 transition-all duration-300" 
           />
         </div>
-        <div class="modal-action">
-          <form method="dialog">
-            <button class="btn">Cancel</button>
-            <button id="submit-email" class="btn btn-primary ml-2">Send Results</button>
+        <div class="modal-action justify-center pt-6">
+          <form method="dialog" class="flex gap-3">
+            <button class="btn btn-ghost hover:bg-base-200 transition-colors duration-300">Cancel</button>
+            <button id="submit-email" class="btn btn-primary">
+              <span class="mr-2">📤</span>
+              Send Results
+            </button>
           </form>
         </div>
       </div>
@@ -216,14 +243,14 @@ const sessionData = {
 
     <!-- Scripts -->
     <script>
-      import { ClerkJS } from '@clerk/clerk-js';
+      import { Clerk } from '@clerk/clerk-js';
       
       const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
       
       if (publishableKey) {
         // Wrap in async function to avoid top-level await
         (async () => {
-          const clerk = new ClerkJS(publishableKey);
+          const clerk = new Clerk(publishableKey);
           await clerk.load();
           
           // Handle sign out

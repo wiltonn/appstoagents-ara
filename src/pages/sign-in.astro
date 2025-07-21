@@ -2,25 +2,141 @@
 export const prerender = false;
 ---
 
-<html lang="en">
+<html lang="en" data-theme="appstoagents-dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sign In - ARA System</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="min-h-screen bg-base-100 flex items-center justify-center">
-    <div class="card w-96 bg-base-200 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title justify-center mb-6">Sign In to ARA</h2>
-        <div id="clerk-sign-in"></div>
+<body class="min-h-screen bg-base-100 text-base-content antialiased">
+  <!-- Navigation Header -->
+  <div class="navbar bg-base-200 border-b border-base-300/20">
+    <div class="flex-1">
+      <a href="/" class="btn btn-ghost text-xl font-bold text-primary hover:text-primary-focus transition-all duration-300 hover:scale-105">
+        <span class="text-primary">ARA</span>
+        <span class="ml-1">System</span>
+      </a>
+    </div>
+    <div class="flex-none gap-2">
+      <a href="/wizard" class="btn btn-ghost btn-sm">
+        Continue as Guest
+      </a>
+      <a href="/sign-up" class="btn btn-primary btn-sm">
+        Create Account
+      </a>
+    </div>
+  </div>
+
+  <div class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-base-100 via-base-200 to-base-100 flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full mx-auto">
+      <!-- Welcome Message -->
+      <div class="text-center mb-8 animate-fade-in">
+        <h1 class="text-4xl lg:text-5xl font-bold text-base-content mb-4">
+          Welcome Back
+        </h1>
+        <p class="text-xl text-base-content/70">
+          Sign in to access your AI readiness audit and continue your transformation journey
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8 items-center">
+        <!-- Sign In Form -->
+        <div class="card bg-base-200 shadow-xl animate-slide-up">
+          <div class="card-body">
+            <h2 class="card-title text-2xl justify-center mb-6">Sign In to Your Account</h2>
+            
+            <div id="clerk-sign-in"></div>
+            
+            <!-- Alternative Actions -->
+            <div class="mt-6 text-center space-y-4">
+              <div class="divider text-xs">New to ARA?</div>
+              
+              <a href="/sign-up" class="btn btn-primary btn-block">
+                Create an Account
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+              </a>
+              
+              <a href="/wizard" class="btn btn-outline btn-sm btn-block">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Continue as Guest
+              </a>
+              
+              <p class="text-xs text-base-content/50">
+                Guest progress can be saved later by creating an account
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benefits Reminder -->
+        <div class="space-y-6 animate-slide-up" style="animation-delay: 0.1s;">
+          <h3 class="text-2xl font-bold text-center lg:text-left">Why Sign In?</h3>
+          
+          <div class="space-y-4">
+            <!-- Progress Tracking -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">Track Your Progress</h4>
+                <p class="text-sm text-base-content/70">Pick up right where you left off with saved audit progress</p>
+              </div>
+            </div>
+
+            <!-- Analytics Access -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">View Analytics</h4>
+                <p class="text-sm text-base-content/70">Access detailed insights and recommendations</p>
+              </div>
+            </div>
+
+            <!-- Report Downloads -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold">Download Reports</h4>
+                <p class="text-sm text-base-content/70">Generate professional PDF reports for stakeholders</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Note -->
+          <div class="text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 text-sm text-base-content/60">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              <span>Your data is encrypted and secure</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    import { ClerkJS } from '@clerk/clerk-js';
+    import { Clerk } from '@clerk/clerk-js';
     
     const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
     
@@ -30,7 +146,7 @@ export const prerender = false;
     
     // Wrap in async function to avoid top-level await
     (async () => {
-      const clerk = new ClerkJS(publishableKey);
+      const clerk = new Clerk(publishableKey);
       await clerk.load();
       
       const signInDiv = document.getElementById('clerk-sign-in');

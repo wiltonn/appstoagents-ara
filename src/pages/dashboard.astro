@@ -139,7 +139,7 @@ if (!userId) {
   </div>
 
   <script>
-    import { ClerkJS } from '@clerk/clerk-js';
+    import { Clerk } from '@clerk/clerk-js';
     
     const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
     
@@ -149,7 +149,7 @@ if (!userId) {
     
     // Wrap in async function to avoid top-level await
     (async () => {
-      const clerk = new ClerkJS(publishableKey);
+      const clerk = new Clerk(publishableKey);
       await clerk.load();
       
       // Update user avatar
@@ -157,6 +157,52 @@ if (!userId) {
       const avatarImg = document.getElementById('user-avatar');
       if (user && avatarImg) {
         avatarImg.src = user.imageUrl || '/default-avatar.png';
+      }
+      
+      // Handle guest session conversion for new signups
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('signup') === 'true' && user) {
+        try {
+          console.log('🔄 Converting guest session for new user:', user.id);
+          
+          const response = await fetch('/api/guest/convert-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user.id }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Guest session converted successfully:', data);
+            
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-top toast-end z-50';
+            toast.innerHTML = `
+              <div class="alert alert-success">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>✅ Your progress has been saved to your account!</span>
+              </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Remove toast after 5 seconds
+            setTimeout(() => {
+              document.body.removeChild(toast);
+            }, 5000);
+          } else {
+            console.warn('Guest session conversion failed:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error converting guest session:', error);
+        }
+        
+        // Clean up URL parameter
+        window.history.replaceState({}, document.title, '/dashboard');
       }
       
       // Handle sign out

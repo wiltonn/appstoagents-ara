@@ -4,7 +4,10 @@ import type { WizardProgress, WizardAnswer, WizardStep } from '../types/wizard';
 import type { TotalScore, ScoringPreview } from '../types/scoring';
 import { WIZARD_CONFIG } from '../config/wizard';
 import { calculateScore, generatePreview } from '../lib/scoring';
-import { trpc } from '../utils/trpc';
+import { trpcVanilla } from '../utils/trpc-vanilla';
+
+// Debounce timer for score calculation
+let scoreCalculationTimer: NodeJS.Timeout | null = null;
 
 interface WizardState {
   // Current wizard state
@@ -103,15 +106,25 @@ export const useWizardStore = create<WizardState>()(
       
       // Update computed values and recalculate score
       get().updateComputedValues();
-      // Fire and forget async scoring update
-      get().recalculateScore().catch(console.error);
+      // Debounced scoring update
+      if (scoreCalculationTimer) {
+        clearTimeout(scoreCalculationTimer);
+      }
+      scoreCalculationTimer = setTimeout(() => {
+        get().recalculateScore().catch(console.error);
+      }, 500); // Wait 500ms after last change
     },
     
     setAnswers: (answers: Record<string, any>) => {
       set({ answers, error: undefined });
       get().updateComputedValues();
-      // Fire and forget async scoring update
-      get().recalculateScore().catch(console.error);
+      // Debounced scoring update
+      if (scoreCalculationTimer) {
+        clearTimeout(scoreCalculationTimer);
+      }
+      scoreCalculationTimer = setTimeout(() => {
+        get().recalculateScore().catch(console.error);
+      }, 500); // Wait 500ms after last change
     },
     
     setSessionId: (sessionId: string) => {
@@ -197,7 +210,7 @@ export const useWizardStore = create<WizardState>()(
       const { answers, currentStep } = get();
       try {
         // Use server-side scoring for more accurate results
-        const result = await trpc.wizard.calculateScore.query({
+        const result = await trpcVanilla.wizard.calculateScore.query({
           answers,
           currentStep,
         });

@@ -119,12 +119,12 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
     };
     
     initializeScoring();
-  }, [recalculateScore, updateChatContext]);
+  }, []); // Run only once on mount
 
   // Update chat context when wizard state changes
   useEffect(() => {
     updateChatContext();
-  }, [updateChatContext]);
+  }, [currentStep, answers]); // Only update when step or answers change
 
   // Auto-save functionality
   useEffect(() => {
@@ -310,97 +310,127 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
   }, [currentStep, totalSteps, setCurrentStep]);
 
   const wizardContent = (
-    <div className={`wizard-content bg-base-100 rounded-xl shadow-lg border border-base-300/50 ${showChat && chatVariant === 'sidebar' ? 'pr-8' : ''}`}>
-      <div className="p-8">
+    <div className={`wizard-content relative ${showChat && chatVariant === 'sidebar' ? 'pr-8' : ''}`}>
+      <div className="space-y-8">
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 bg-error/10 border border-error/20 rounded-lg p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-error" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-error">
-                  {error}
-                </h3>
+          <div className="mb-6">
+            <div className="bg-error/10 border border-error/20 rounded-xl p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-error" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-error">
+                    {error}
+                  </h3>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <ProgressBar
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          completedSteps={completedSteps}
-          stepTitles={stepTitles}
-        />
-      </div>
-
-      {/* Score Preview */}
-      <div className="mb-8">
-        <ScorePreview
-          score={currentScore}
-          preview={scoringPreview}
-          isVisible={showScorePreview}
-          onToggle={toggleScorePreview}
-        />
-      </div>
-
-      {/* Current Step */}
-      {currentStepData && (
-        <div className="mb-8">
-          <WizardStep
-            step={currentStepData}
-            answers={answers}
-            onAnswerChange={handleAnswerChange}
-            errors={validationErrors}
-            variant="enhanced"
-            showValidationSummary={true}
-          />
+        {/* Progress Bar */}
+        <div>
+          <div className="bg-base-100 rounded-xl border border-base-300/30 p-6">
+            <ProgressBar
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              stepTitles={stepTitles}
+            />
+          </div>
         </div>
-      )}
+
+        {/* Score Preview */}
+        {scoringPreview && (
+          <div>
+            <div className="bg-base-100 rounded-xl border border-base-300/30 overflow-hidden">
+              <ScorePreview
+                preview={scoringPreview}
+                isVisible={showScorePreview}
+                onToggle={toggleScorePreview}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Current Step */}
+        {currentStepData && (
+          <div>
+            <div className="bg-base-100 rounded-xl border border-base-300/30 overflow-hidden">
+              <div className="p-8">
+                <WizardStep
+                  step={currentStepData}
+                  answers={answers}
+                  onAnswerChange={handleAnswerChange}
+                  errors={validationErrors}
+                  variant="enhanced"
+                  showValidationSummary={true}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Step Navigation */}
-        <div className="border-t border-base-300/50 pt-8 mt-8">
-          <StepNavigation
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            canGoNext={isStepValid()}
-            canGoPrevious={currentStep > 1}
-            isLoading={isLoading}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onSave={handleManualSave}
-            showSaveButton={true}
-          />
+        <div>
+          <div className="bg-base-100 rounded-xl border border-base-300/30 p-6">
+            <StepNavigation
+              currentStep={currentStep}
+              totalSteps={totalSteps}
+              canGoNext={isStepValid()}
+              canGoPrevious={currentStep > 1}
+              isLoading={isLoading}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              onSave={handleManualSave}
+              showSaveButton={true}
+            />
+          </div>
         </div>
 
         {/* Auto-save Status */}
         {lastSaved && (
-          <div className="mt-4 text-center text-xs text-base-content/60">
-            Last saved: {lastSaved.toLocaleTimeString()}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/20 text-success rounded-full text-sm">
+              <span className="w-2 h-2 bg-success rounded-full"></span>
+              Last saved: {lastSaved.toLocaleTimeString()}
+            </div>
           </div>
         )}
 
         {/* Debug Info (development only) */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-base-200 rounded-md text-xs text-base-content/60">
-            <div>Current Step: {currentStep}/{totalSteps}</div>
-            <div>Progress: {Math.round(progress)}%</div>
-            <div>Answers: {Object.keys(answers).length}</div>
-            <div>Session ID: {useWizardStore.getState().sessionId}</div>
-            <div>Step Valid: {isStepValid() ? 'Yes' : 'No'}</div>
-            <div>Chat Context: {chatContext ? 'Active' : 'None'}</div>
-            {Object.keys(validationErrors).length > 0 && (
-              <div className="mt-2">
-                <div>Validation Errors:</div>
-                <pre className="text-xs">{JSON.stringify(validationErrors, null, 2)}</pre>
+          <div>
+            <div className="bg-base-200 rounded-xl border border-base-300/30 overflow-hidden">
+              <div className="bg-neutral/10 px-4 py-2 border-b border-base-300/30">
+                <span className="text-sm font-medium text-neutral-content flex items-center gap-2">
+                  🔧 Debug Info
+                </span>
               </div>
-            )}
+              <div className="p-4 space-y-2 text-xs text-base-content/70">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <div><strong>Current Step:</strong> <span className="text-primary">{currentStep}/{totalSteps}</span></div>
+                    <div><strong>Progress:</strong> <span className="text-accent">{Math.round(progress)}%</span></div>
+                    <div><strong>Answers:</strong> <span className="text-success">{Object.keys(answers).length}</span></div>
+                  </div>
+                  <div className="space-y-1">
+                    <div><strong>Session ID:</strong> <span className="text-info">{useWizardStore.getState().sessionId}</span></div>
+                    <div><strong>Step Valid:</strong> <span className={isStepValid() ? 'text-success' : 'text-error'}>{isStepValid() ? 'Yes' : 'No'}</span></div>
+                    <div><strong>Chat Context:</strong> <span className="text-secondary">{chatContext ? 'Active' : 'None'}</span></div>
+                  </div>
+                </div>
+                {Object.keys(validationErrors).length > 0 && (
+                  <div className="mt-4 p-3 bg-error/10 rounded-lg border border-error/20">
+                    <div className="text-error font-medium mb-2">Validation Errors:</div>
+                    <pre className="text-xs text-error/80 overflow-auto">{JSON.stringify(validationErrors, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -426,16 +456,20 @@ export const WizardIsland: React.FC<WizardIslandProps> = ({
           </div>
         </div>
         
-        {/* Chat sidebar */}
+        {/* Chat Sidebar */}
         <div className="flex-shrink-0 ml-8">
           <div className="sticky top-8">
-            <ChatInterface
-              sessionId={useWizardStore.getState().sessionId || 'unknown'}
-              context={chatContext || undefined}
-              onContextUpdate={handleChatContextUpdate}
-              variant="sidebar"
-              className="h-[calc(100vh-4rem)]"
-            />
+            <div>
+              <div className="bg-base-100 rounded-xl border border-base-300/30 overflow-hidden">
+                <ChatInterface
+                  sessionId={useWizardStore.getState().sessionId || 'unknown'}
+                  context={chatContext || undefined}
+                  onContextUpdate={handleChatContextUpdate}
+                  variant="sidebar"
+                  className="h-[calc(100vh-4rem)]"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

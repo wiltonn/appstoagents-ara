@@ -17,10 +17,11 @@ const userId = Astro.locals.userId;
 		<title>ARA - Agent Readiness Audit</title>
 	</head>
 	<body class="min-h-screen bg-base-100 text-base-content antialiased">
-		<div class="navbar bg-base-200/50 backdrop-blur-sm border-b border-base-300/20">
+		<div class="navbar bg-base-200 border-b border-base-300/20">
 			<div class="flex-1">
-				<a class="btn btn-ghost text-xl font-semibold text-primary hover:text-primary-focus transition-colors duration-200">
-					ARA System
+				<a class="btn btn-ghost text-xl font-bold text-primary hover:text-primary-focus transition-all duration-300 hover:scale-105">
+					<span class="text-primary">ARA</span>
+					<span class="ml-1">System</span>
 				</a>
 			</div>
 			<div class="flex-none">
@@ -56,43 +57,79 @@ const userId = Astro.locals.userId;
 			</div>
 		</div>
 
-		<div class="hero min-h-screen bg-gradient-to-br from-base-100 via-base-100 to-base-200/30 relative overflow-hidden">
-			<!-- Background gradient overlay -->
-			<div class="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent"></div>
-			
-			<div class="hero-content text-center relative z-10">
-				<div class="max-w-4xl animate-fade-in">
-					<h1 class="text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
+		<div class="hero min-h-screen">
+			<div class="hero-content text-center">
+				<div class="max-w-5xl animate-fade-in">
+					<div class="mb-8">
+						<div class="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary text-sm font-medium">
+							<span class="w-2 h-2 bg-primary rounded-full"></span>
+							Revolutionary AI Assessment Platform
+						</div>
+					</div>
+					
+					<h1 class="text-5xl lg:text-7xl xl:text-8xl font-bold text-base-content leading-tight mb-8">
 						Agent Readiness Audit
 					</h1>
-					<p class="py-8 text-xl lg:text-2xl text-base-content/80 font-light leading-relaxed max-w-3xl mx-auto">
-						Assess your organization's readiness for AI agent implementation with our comprehensive audit system. 
+					
+					<p class="text-xl lg:text-2xl text-base-content/80 font-light leading-relaxed max-w-4xl mx-auto mb-12">
+						Assess your organization's readiness for AI agent implementation with our 
+						<span class="text-primary font-semibold">comprehensive audit system</span>. 
 						Get personalized recommendations and a strategic roadmap for AI transformation.
 					</p>
-					<div class="flex flex-col gap-6 animate-slide-up">
+					<div class="flex flex-col gap-8 animate-slide-up">
 						{userId ? (
-							<a href="/wizard" class="btn btn-primary btn-lg px-8 py-4 text-lg hover:scale-105 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border-0">
-								<span class="flex items-center gap-2">
-									Continue Your Audit
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-									</svg>
-								</span>
-							</a>
-						) : (
-							<>
-								<a href="/wizard" class="btn btn-primary btn-lg px-8 py-4 text-lg hover:scale-105 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border-0">
-									<span class="flex items-center gap-2">
-										Start Free Audit
-										<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<div>
+								<a href="/wizard" class="btn btn-primary btn-lg px-12 py-6 text-xl font-semibold">
+									<span class="flex items-center gap-3">
+										<span class="text-2xl">🚀</span>
+										Continue Your Audit
+										<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
 										</svg>
 									</span>
 								</a>
-								<div class="divider text-base-content/40 font-light">OR</div>
-								<div class="text-base text-base-content/60 bg-base-200/30 backdrop-blur-sm rounded-lg p-4 border border-base-300/20">
-									<a href="/sign-up" class="link link-primary font-medium hover:text-accent transition-colors duration-200">Create an account</a> 
-									<span class="mx-2">to save your progress and access advanced features</span>
+							</div>
+						) : (
+							<>
+								<div>
+									<a href="/wizard" class="btn btn-primary btn-lg px-12 py-6 text-xl font-semibold">
+										<span class="flex items-center gap-3">
+											<span class="text-2xl">⚡</span>
+											Start Free Audit
+											<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+											</svg>
+										</span>
+									</a>
+								</div>
+								
+								<div class="flex items-center gap-4">
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-base-content/20 to-transparent"></div>
+									<span class="text-base-content/50 text-sm font-medium">OR</span>
+									<div class="flex-1 h-px bg-gradient-to-r from-transparent via-base-content/20 to-transparent"></div>
+								</div>
+								
+								<div>
+									<div class="text-center bg-base-200 rounded-xl p-6 border border-base-300/30">
+										<p class="text-base text-base-content/80 mb-4">
+											<a href="/sign-up" class="link link-primary font-semibold hover:text-accent transition-colors duration-200 hover:scale-105 inline-block">Create an account</a> 
+											to save your progress and unlock advanced features
+										</p>
+										<div class="flex flex-wrap justify-center gap-2 text-sm text-base-content/60">
+											<span class="inline-flex items-center gap-1">
+												<span class="w-1.5 h-1.5 bg-success rounded-full"></span>
+												Progress saving
+											</span>
+											<span class="inline-flex items-center gap-1">
+												<span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
+												Detailed analytics
+											</span>
+											<span class="inline-flex items-center gap-1">
+												<span class="w-1.5 h-1.5 bg-accent rounded-full"></span>
+												PDF reports
+											</span>
+										</div>
+									</div>
 								</div>
 							</>
 						)}
@@ -100,7 +137,7 @@ const userId = Astro.locals.userId;
 					
 					<!-- Feature highlights -->
 					<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 text-sm">
-						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-primary/30 transition-colors duration-300">
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200 border border-base-300/20 hover:border-primary/30 transition-colors duration-300">
 							<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
 								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -108,7 +145,7 @@ const userId = Astro.locals.userId;
 							</div>
 							<span class="font-medium text-base-content/80">Comprehensive Assessment</span>
 						</div>
-						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-accent/30 transition-colors duration-300">
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200 border border-base-300/20 hover:border-accent/30 transition-colors duration-300">
 							<div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-accent">
 								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
@@ -116,7 +153,7 @@ const userId = Astro.locals.userId;
 							</div>
 							<span class="font-medium text-base-content/80">Instant Results</span>
 						</div>
-						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200/30 backdrop-blur-sm border border-base-300/20 hover:border-success/30 transition-colors duration-300">
+						<div class="flex flex-col items-center gap-2 p-4 rounded-lg bg-base-200 border border-base-300/20 hover:border-success/30 transition-colors duration-300">
 							<div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success">
 								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -130,14 +167,14 @@ const userId = Astro.locals.userId;
 		</div>
 
 		<script>
-			import { ClerkJS } from '@clerk/clerk-js';
+			import { Clerk } from '@clerk/clerk-js';
 			
 			const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
 			
 			if (publishableKey) {
 				// Wrap in async function to avoid top-level await
 				(async () => {
-					const clerk = new ClerkJS(publishableKey);
+					const clerk = new Clerk(publishableKey);
 					await clerk.load();
 					
 					// Handle sign out

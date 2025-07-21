@@ -8,108 +8,274 @@ const cookieHeader = Astro.request.headers.get('cookie');
 const hasGuestSession = !!getAnonymousIdFromCookie(cookieHeader);
 ---
 
-<html lang="en">
+<html lang="en" data-theme="appstoagents-dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sign Up - ARA System</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body>
-  <div class="min-h-screen bg-base-100 flex items-center justify-center">
-    <div class="card w-96 bg-base-200 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title justify-center mb-6">Create ARA Account</h2>
+<body class="min-h-screen bg-base-100 text-base-content antialiased">
+  <!-- Navigation Header -->
+  <div class="navbar bg-base-200 border-b border-base-300/20">
+    <div class="flex-1">
+      <a href="/" class="btn btn-ghost text-xl font-bold text-primary hover:text-primary-focus transition-all duration-300 hover:scale-105">
+        <span class="text-primary">ARA</span>
+        <span class="ml-1">System</span>
+      </a>
+    </div>
+    <div class="flex-none">
+      <a href="/sign-in" class="btn btn-ghost btn-sm">
+        Already have an account? Sign In
+      </a>
+    </div>
+  </div>
+
+  <div class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-base-100 via-base-200 to-base-100 flex items-center justify-center p-4">
+    <div class="max-w-5xl w-full mx-auto">
+      <div class="text-center mb-8 animate-fade-in">
+        <h1 class="text-4xl lg:text-5xl font-bold text-base-content mb-4">
+          Join 10,000+ Organizations<br/>
+          <span class="text-primary">Transforming with AI</span>
+        </h1>
+        <p class="text-xl text-base-content/70 max-w-2xl mx-auto mb-8">
+          Create your free account to unlock personalized AI readiness insights, 
+          track progress, and accelerate your organization's transformation.
+        </p>
         
-        {hasGuestSession && (
-          <div class="alert alert-info mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <!-- Primary CTA -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <button id="create-account-cta" class="btn btn-primary btn-lg px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
-            <div>
-              <h3 class="font-bold">Save Your Progress!</h3>
-              <div class="text-xs">Your audit progress will be preserved when you create an account.</div>
+            Create Your Free Account
+          </button>
+          <a href="/wizard" class="btn btn-outline px-6 py-3">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            Try as Guest
+          </a>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8 items-start">
+        <!-- Sign Up Form Section -->
+        <div class="card bg-base-200 shadow-xl animate-slide-up">
+          <div class="card-body">
+            <div class="text-center mb-6">
+              <h2 class="text-2xl font-bold mb-2">Start Your Free Account</h2>
+              <p class="text-sm text-base-content/70">Join thousands of organizations already using ARA</p>
+            </div>
+        
+            {hasGuestSession && (
+              <div class="alert alert-success mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <h3 class="font-bold">🎉 We'll Save Your Progress!</h3>
+                  <div class="text-xs">Your audit progress will be automatically preserved when you create an account.</div>
+                </div>
+              </div>
+            )}
+            
+            <div id="clerk-sign-up" class="transition-all duration-300 rounded-lg"></div>
+            
+            <!-- Sign In Alternative -->
+            <div class="mt-6 text-center">
+              <p class="text-sm text-base-content/70">
+                Already have an account? 
+                <a href="/sign-in" class="link link-primary font-semibold hover:link-accent">Sign in here</a>
+              </p>
             </div>
           </div>
-        )}
-        
-        <div id="clerk-sign-up"></div>
-        
-        <div class="divider">Benefits of creating an account</div>
-        <ul class="text-sm text-base-content/70 space-y-1">
-          <li>✅ Save progress across devices</li>
-          <li>✅ Access detailed analytics</li>
-          <li>✅ Download PDF reports</li>
-          <li>✅ Track progress over time</li>
-        </ul>
+        </div>
+
+        <!-- Benefits Section -->
+        <div class="space-y-6 animate-slide-up" style="animation-delay: 0.1s;">
+          <h3 class="text-2xl font-bold text-center lg:text-left">Why Create an Account?</h3>
+          
+          <!-- Benefit Cards -->
+          <div class="space-y-4">
+            <div class="card bg-base-200 border border-primary/20 hover:border-primary/40 transition-all duration-300 hover:scale-[1.02]">
+              <div class="card-body p-4">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-base-content">Secure Progress Tracking</h4>
+                    <p class="text-sm text-base-content/70 mt-1">Never lose your audit progress. Access from any device, anytime.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card bg-base-200 border border-accent/20 hover:border-accent/40 transition-all duration-300 hover:scale-[1.02]">
+              <div class="card-body p-4">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-base-content">Advanced Analytics</h4>
+                    <p class="text-sm text-base-content/70 mt-1">Detailed insights into your AI readiness with actionable recommendations.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card bg-base-200 border border-success/20 hover:border-success/40 transition-all duration-300 hover:scale-[1.02]">
+              <div class="card-body p-4">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-base-content">Professional Reports</h4>
+                    <p class="text-sm text-base-content/70 mt-1">Download comprehensive PDF reports to share with stakeholders.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trust Indicators -->
+          <div class="text-center lg:text-left space-y-4 pt-4">
+            <div class="flex items-center justify-center lg:justify-start gap-6 text-sm text-base-content/60">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <span>256-bit Encryption</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <span>SOC 2 Compliant</span>
+              </div>
+            </div>
+            
+            <p class="text-xs text-base-content/50">
+              By creating an account, you agree to our 
+              <a href="/terms" class="link link-primary">Terms of Service</a> and 
+              <a href="/privacy" class="link link-primary">Privacy Policy</a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    import { ClerkJS } from '@clerk/clerk-js';
+    import { Clerk } from '@clerk/clerk-js';
     
     const publishableKey = import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY;
     
-    if (!publishableKey) {
-      throw new Error('Missing Clerk Publishable Key');
-    }
-    
-    // Wrap in async function to avoid top-level await
-    (async () => {
-      const clerk = new ClerkJS(publishableKey);
+    // Initialize Clerk and handle the page
+    async function initializePage() {
+      if (!publishableKey) {
+        console.error('❌ Missing Clerk Publishable Key');
+        document.body.innerHTML = `
+          <div class="min-h-screen bg-base-100 flex items-center justify-center p-4">
+            <div class="card bg-error text-error-content w-96">
+              <div class="card-body">
+                <h2 class="card-title">⚠️ Configuration Error</h2>
+                <p>Clerk authentication is not configured. Please set up your Clerk keys:</p>
+                <ol class="list-decimal list-inside text-sm mt-4 space-y-1">
+                  <li>Go to <a href="https://dashboard.clerk.com" target="_blank" class="underline">Clerk Dashboard</a></li>
+                  <li>Create a new application or select existing</li>
+                  <li>Copy your Publishable Key</li>
+                  <li>Add it to your .env file as PUBLIC_CLERK_PUBLISHABLE_KEY</li>
+                </ol>
+                <div class="card-actions justify-end mt-4">
+                  <a href="/" class="btn btn-primary">Go Home</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      if (publishableKey.includes('your_publishable_key_here') || publishableKey === 'pk_test_your_publishable_key_here') {
+        console.error('❌ Invalid Clerk Publishable Key - using placeholder value');
+        document.body.innerHTML = `
+          <div class="min-h-screen bg-base-100 flex items-center justify-center p-4">
+            <div class="card bg-warning text-warning-content w-96">
+              <div class="card-body">
+                <h2 class="card-title">🔑 Setup Required</h2>
+                <p>Please replace the placeholder Clerk key with your actual key:</p>
+                <div class="mockup-code mt-4 text-xs">
+                  <pre data-prefix="$"><code>PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_real_key"</code></pre>
+                </div>
+                <p class="text-sm mt-2">Get your key from <a href="https://dashboard.clerk.com" target="_blank" class="underline">Clerk Dashboard</a></p>
+                <div class="card-actions justify-end mt-4">
+                  <a href="/" class="btn btn-primary">Go Home</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      // Initialize Clerk
+      const clerk = new Clerk(publishableKey);
       await clerk.load();
     
-    const signUpDiv = document.getElementById('clerk-sign-up');
-    if (signUpDiv) {
-      clerk.mountSignUp(signUpDiv, {
-        signInUrl: '/sign-in',
-        afterSignUpUrl: '/dashboard',
-      });
-    }
-
-      // Handle guest session conversion after successful sign up
-      clerk.addListener('user.signed_up', async (user) => {
-        try {
-          // Convert guest session if it exists
-          const response = await fetch('/api/guest/convert-session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ userId: user.id }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Guest session converted successfully:', data);
+      const signUpDiv = document.getElementById('clerk-sign-up');
+      if (signUpDiv) {
+        clerk.mountSignUp(signUpDiv, {
+          signInUrl: '/sign-in',
+          afterSignUpUrl: '/dashboard?signup=true',
+        });
+      }
+      
+      // Handle CTA button click
+      const ctaButton = document.getElementById('create-account-cta');
+      if (ctaButton) {
+        ctaButton.addEventListener('click', () => {
+          const signUpDiv = document.getElementById('clerk-sign-up');
+          if (signUpDiv) {
+            // Smooth scroll to the sign-up form
+            signUpDiv.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
             
-            // Show success message briefly before redirect
-            const toast = document.createElement('div');
-            toast.className = 'toast toast-top toast-end';
-            toast.innerHTML = `
-              <div class="alert alert-success">
-                <span>✅ Progress saved! Redirecting to dashboard...</span>
-              </div>
-            `;
-            document.body.appendChild(toast);
-            
-            // Redirect after short delay
+            // Add visual feedback
+            signUpDiv.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
             setTimeout(() => {
-              window.location.href = '/dashboard';
-            }, 1500);
-          } else {
-            // If conversion fails, still proceed to dashboard
-            console.warn('Guest session conversion failed, proceeding to dashboard');
-            window.location.href = '/dashboard';
+              signUpDiv.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+            }, 2000);
+            
+            // Try to focus on the first input after a brief delay
+            setTimeout(() => {
+              const firstInput = signUpDiv.querySelector('input');
+              if (firstInput) {
+                firstInput.focus();
+              }
+            }, 500);
           }
-        } catch (error) {
-          console.error('Error converting guest session:', error);
-          // Still proceed to dashboard even if conversion fails
-          window.location.href = '/dashboard';
-        }
-      });
-    })();
+        });
+      }
+    }
+    
+    // Run the initialization
+    initializePage();
   </script>
 </body>
 </html>

@@ -13,9 +13,11 @@ yarn-error.log*
 pnpm-debug.log*
 
 
-# environment variables
-.env
+# environment variables - ignore sensitive local configs but keep templates
+.env.local
+.env.*.local
 .env.production
+.env.production.local
 
 # macOS-specific files
 .DS_Store
@@ -24,17 +26,6 @@ pnpm-debug.log*
 .idea/
 
 /src/generated/prisma
-
-
-# Ignore all env files
-.env
-.env.*
-# …but keep a template for others to copy
-!.env.example
-
-# Ignore dotenv‑expand or direnv shells
-.env.local
-.env.*.local
 
 # Extra safety for CI or tooling
 .npmrc

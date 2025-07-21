@@ -19,7 +19,19 @@ const { title, description = "Agent Readiness Audit - Assess your organization's
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <title>{title}</title>
   </head>
-  <body class="h-full bg-base-100 text-base-content antialiased">
-    <slot />
+  <body class="h-full bg-gradient-to-br from-base-100 via-base-200 to-base-100 text-base-content antialiased overflow-x-hidden">
+    <!-- Background Effects -->
+    <div class="fixed inset-0 pointer-events-none">
+      <!-- Subtle grid pattern -->
+      <div class="absolute inset-0 bg-[linear-gradient(rgba(34,197,94,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.03)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+      <!-- Animated gradient orbs -->
+      <div class="absolute top-1/4 -left-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+      <div class="absolute bottom-1/4 -right-32 w-64 h-64 bg-accent/5 rounded-full blur-3xl animate-float" style="animation-delay: -1.5s;"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="relative z-10">
+      <slot />
+    </div>
   </body>
 </html>

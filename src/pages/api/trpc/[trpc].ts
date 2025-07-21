@@ -3,6 +3,9 @@ import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '../../../server/router';
 import { createContext } from '../../../server/trpc';
 
+// This is a dynamic API route that should be server-rendered
+export const prerender = false;
+
 export const ALL: APIRoute = (context) =>
   fetchRequestHandler({
     endpoint: '/api/trpc',

@@ -1,7 +1,8 @@
 // Job Queue System for PDF Generation - Task 2.3
 // Handles concurrent PDF generation with Bull and Redis
 
-import Bull, { Queue, Job, JobOptions } from 'bull';
+import Bull from 'bull';
+import type { Queue, Job, JobOptions } from 'bull';
 import type { 
   PDFJob, 
   AuditReportData, 
@@ -77,7 +78,7 @@ export class PDFJobQueue {
       userId: reportData.userId,
       status: 'pending',
       type: 'audit_report',
-      priority: (options.priority as 'low' | 'normal' | 'high') || 'normal',
+      priority: (typeof options.priority === 'string' ? options.priority : 'normal') as 'low' | 'normal' | 'high',
       createdAt: new Date(),
       retryCount: 0,
       maxRetries: 3,
@@ -345,7 +346,7 @@ export class PDFJobQueue {
 
   // Utility methods
   private generateJobId(): string {
-    return `pdf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `pdf_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private getPriorityValue(priority: 'low' | 'normal' | 'high'): number {

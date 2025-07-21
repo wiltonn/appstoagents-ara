@@ -26,7 +26,7 @@ export class PDFGenerationService {
 
     try {
       this.browser = await puppeteer.launch({
-        headless: 'new',
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -102,7 +102,7 @@ export class PDFGenerationService {
         },
       });
 
-      return pdfBuffer;
+      return Buffer.from(pdfBuffer);
     } finally {
       await page.close();
     }
@@ -216,6 +216,7 @@ export class PDFGenerationService {
       data: {
         labels: ['Achieved', 'Remaining'],
         datasets: [{
+          label: 'Readiness Score',
           data: [overallPercentage, 100 - overallPercentage],
           backgroundColor: ['#10B981', '#E5E7EB'],
           borderWidth: 0,

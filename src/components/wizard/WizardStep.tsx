@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { WizardStep as WizardStepType, Question } from '../../types/wizard';
 import { QuestionRenderer } from './QuestionRenderer';
 import { EnhancedQuestionRenderer } from './EnhancedQuestionRenderer';
@@ -26,29 +26,36 @@ export const WizardStep: React.FC<WizardStepProps> = ({
 }) => {
   const [validationResults, setValidationResults] = useState<Record<string, any>>({});
   const [warnings, setWarnings] = useState<Record<string, string>>({});
-  const shouldShowQuestion = (question: Question): boolean => {
-    // Use enhanced conditional logic if available
-    if (question.enhancedConditionalLogic) {
-      return ConditionalLogicEvaluator.shouldShowQuestion(question.enhancedConditionalLogic, answers);
-    }
-    
-    // Fall back to legacy conditional logic
-    if (!question.conditionalLogic?.showIf) return true;
-    
-    const { questionId, value } = question.conditionalLogic.showIf;
-    const currentAnswer = answers[questionId];
-    
-    // Handle different comparison types
-    if (Array.isArray(value)) {
-      return Array.isArray(currentAnswer) 
-        ? value.some(v => currentAnswer.includes(v))
-        : value.includes(currentAnswer);
-    }
-    
-    return currentAnswer === value;
-  };
+  
+  const shouldShowQuestion = useMemo(
+    () => (question: Question): boolean => {
+      // Use enhanced conditional logic if available
+      if (question.enhancedConditionalLogic) {
+        return ConditionalLogicEvaluator.shouldShowQuestion(question.enhancedConditionalLogic, answers);
+      }
+      
+      // Fall back to legacy conditional logic
+      if (!question.conditionalLogic?.showIf) return true;
+      
+      const { questionId, value } = question.conditionalLogic.showIf;
+      const currentAnswer = answers[questionId];
+      
+      // Handle different comparison types
+      if (Array.isArray(value)) {
+        return Array.isArray(currentAnswer) 
+          ? value.some(v => currentAnswer.includes(v))
+          : value.includes(currentAnswer);
+      }
+      
+      return currentAnswer === value;
+    },
+    [answers] // Only recreate when answers change
+  );
 
-  const visibleQuestions = step.questions.filter(shouldShowQuestion);
+  const visibleQuestions = useMemo(
+    () => step.questions.filter(shouldShowQuestion),
+    [step.questions, shouldShowQuestion] // Only recompute when questions or shouldShowQuestion changes
+  );
 
   // Real-time validation
   useEffect(() => {

@@ -1,7 +1,8 @@
 // Cache Service Unit Tests - Task 3.3: Testing Suite
 // Comprehensive tests for Redis-backed caching
 
-import { describe, test, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 // Mock Redis implementation
 const mockRedis = {
@@ -15,6 +16,8 @@ const mockRedis = {
   quit: vi.fn(),
   on: vi.fn(),
   off: vi.fn(),
+  flushall: vi.fn(),
+  scan: vi.fn(),
 };
 
 // Mock IORedis module
@@ -26,7 +29,7 @@ vi.mock('ioredis', () => ({
 const { CacheService, CACHE_TTL } = await import('@/lib/cache');
 
 describe('CacheService', () => {
-  let cacheService: CacheService;
+  let cacheService: InstanceType<typeof CacheService>;
 
   beforeEach(() => {
     vi.clearAllMocks();

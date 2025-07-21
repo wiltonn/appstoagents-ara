@@ -31,7 +31,7 @@ export class MessageService {
           content: message.content,
           metadata: message.metadata || {},
           tokens: this.estimateTokens(message.content),
-          embedding: embedding ? `[${embedding.join(',')}]` : null,
+          // embedding: embedding ? `[${embedding.join(',')}]` : null, // TODO: Re-enable when Prisma schema supports vector type
           createdAt: message.timestamp,
         },
       });
