@@ -3,7 +3,6 @@ import React from 'react';
 interface ProgressBarProps {
   currentStep: number;
   totalSteps: number;
-  completedSteps: string[];
   stepTitles?: string[];
   className?: string;
 }
@@ -11,7 +10,6 @@ interface ProgressBarProps {
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStep,
   totalSteps,
-  completedSteps,
   stepTitles = [],
   className = '',
 }) => {

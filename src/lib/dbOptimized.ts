@@ -398,22 +398,7 @@ class DatabaseOptimizer {
             orderBy: { createdAt: 'desc' },
             take: limit,
             skip: offset,
-            include: {
-              auditSession: {
-                select: {
-                  id: true,
-                  companyName: true,
-                  user: {
-                    select: {
-                      firstName: true,
-                      lastName: true,
-                      email: true,
-                    },
-                  },
-                },
-              },
-            },
-          }),
+          } as any),
           this.prisma.pDFJob.count({ where }),
         ]);
 
@@ -512,7 +497,7 @@ class DatabaseOptimizer {
         const updates = answers.map(answer =>
           tx.auditAnswer.upsert({
             where: {
-              auditSessionId_questionKey: {
+              unique_session_question: {
                 auditSessionId: sessionId,
                 questionKey: answer.questionKey,
               },

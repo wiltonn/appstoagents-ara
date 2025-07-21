@@ -133,7 +133,7 @@ export class WebSocketClient {
     this.send(event);
   }
 
-  private send(event: WebSocketEvent): void {
+  public send(event: WebSocketEvent): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       try {
         this.ws.send(JSON.stringify(event));

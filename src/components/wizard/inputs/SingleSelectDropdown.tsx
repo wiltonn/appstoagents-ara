@@ -147,7 +147,7 @@ export const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         <div className="absolute z-50 mt-2 w-full rounded-lg bg-white shadow-lg border border-gray-200 max-h-60 overflow-auto">
           {filteredOptions.length > 0 ? (
             <ul className="py-1" role="listbox">
-              {filteredOptions.map((option, index) => (
+              {filteredOptions.map((option) => (
                 <li
                   key={option.id}
                   className={`

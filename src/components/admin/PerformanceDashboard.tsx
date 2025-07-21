@@ -1,7 +1,7 @@
 // Performance Monitoring Dashboard - Task 3.1: Performance Optimization
 // Real-time performance metrics and monitoring visualization
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 interface PerformanceMetrics {
@@ -93,14 +93,6 @@ export function PerformanceDashboard() {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'text-success';
-      case 'degraded': return 'text-warning';
-      case 'unhealthy': return 'text-error';
-      default: return 'text-base-content';
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {

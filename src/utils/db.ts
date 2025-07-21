@@ -13,7 +13,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Helper function to generate anonymous ID
 export function generateAnonymousId(): string {
-  return `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `anon_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
 // Helper function to get or create anonymous session

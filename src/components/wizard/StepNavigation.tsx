@@ -39,7 +39,6 @@ export const StepNavigation: React.FC<StepNavigationProps> = ({
   onSkipStep,
   onJumpToStep,
 }) => {
-  const isFirstStep = currentStep === 1;
   const isLastStep = currentStep === totalSteps;
 
   return (

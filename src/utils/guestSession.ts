@@ -220,20 +220,20 @@ export async function convertGuestToUserSession(
       for (const answer of guestSession.answers) {
         await tx.auditAnswer.upsert({
           where: {
-            auditSessionId_questionKey: {
+            unique_session_question: {
               auditSessionId: existingUserSession.id,
               questionKey: answer.questionKey,
             },
           },
           update: {
-            value: answer.value,
+            value: answer.value as any,
             updatedAt: new Date(),
           },
           create: {
             auditSessionId: existingUserSession.id,
             questionKey: answer.questionKey,
             stepId: answer.stepId,
-            value: answer.value,
+            value: answer.value as any,
           },
         });
       }
@@ -306,7 +306,6 @@ export async function getGuestSessionAnalytics(days: number = 30) {
     completedGuestSessions,
     emailCaptured,
     converted,
-    averageProgress,
   ] = await Promise.all([
     // Total guest sessions
     prisma.auditSession.count({

@@ -1,7 +1,7 @@
 // Security Audit Dashboard - Task 3.2: Security Hardening
 // Administrative dashboard for security monitoring and vulnerability assessment
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 
 interface SecurityIssue {
@@ -174,16 +174,6 @@ export function SecurityAuditDashboard() {
     );
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'text-error';
-      case 'high': return 'text-warning';
-      case 'medium': return 'text-info';
-      case 'low': return 'text-success';
-      case 'info': return 'text-base-content';
-      default: return 'text-base-content';
-    }
-  };
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {

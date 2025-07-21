@@ -77,7 +77,7 @@ export class PDFJobQueue {
       userId: reportData.userId,
       status: 'pending',
       type: 'audit_report',
-      priority: options.priority as 'low' | 'normal' | 'high' || 'normal',
+      priority: (options.priority as 'low' | 'normal' | 'high') || 'normal',
       createdAt: new Date(),
       retryCount: 0,
       maxRetries: 3,
@@ -153,7 +153,7 @@ export class PDFJobQueue {
       return {
         jobId,
         success: false,
-        error: `Error retrieving job result: ${error.message}`,
+        error: `Error retrieving job result: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -316,7 +316,7 @@ export class PDFJobQueue {
         
         data.status = 'failed';
         data.failedAt = new Date();
-        data.error = error.message;
+        data.error = error instanceof Error ? error.message : String(error);
         data.retryCount++;
 
         throw error;
@@ -357,7 +357,7 @@ export class PDFJobQueue {
     }
   }
 
-  private async getJobState(job: Job): Promise<string> {
+  private async getJobState(job: Job): Promise<"pending" | "processing" | "completed" | "failed"> {
     const state = await job.getState();
     switch (state) {
       case 'waiting': return 'pending';

@@ -10,7 +10,6 @@ interface ScorePreviewProps {
 }
 
 export const ScorePreview: React.FC<ScorePreviewProps> = ({
-  score,
   preview,
   isVisible,
   onToggle,

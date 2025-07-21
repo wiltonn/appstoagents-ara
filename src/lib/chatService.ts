@@ -253,43 +253,6 @@ export class ChatService {
       .slice(0, this.config.suggestions.maxSuggestions);
   }
 
-  // System prompts
-  private buildSystemPrompt(): string {
-    return `You are an AI assistant helping users complete an Agent Readiness Audit. Your role is to:
-
-1. Answer questions about the audit process clearly and concisely
-2. Help users understand what each question is assessing
-3. Provide guidance on how to answer questions accurately
-4. Explain scoring methodology when asked
-5. Offer encouragement and support throughout the process
-
-Guidelines:
-- Be helpful, supportive, and professional
-- Keep responses concise but informative
-- Focus on the audit context and user's current progress
-- Don't make assumptions about the user's technical background
-- If you don't know something specific about their organization, ask clarifying questions
-- Prioritize accuracy over speed in your responses
-
-Current date: ${new Date().toISOString().split('T')[0]}`;
-  }
-
-  private buildContextPrompt(): string {
-    if (!this.currentContext) {
-      return 'The user has not started the audit yet.';
-    }
-
-    const { currentStep, totalSteps, stepTitle, overallProgress, currentAnswers } = this.currentContext;
-    
-    return `Current wizard context:
-- Step: ${currentStep} of ${totalSteps} (${stepTitle})
-- Overall progress: ${Math.round(overallProgress)}%
-- Questions answered: ${Object.keys(currentAnswers).length}
-
-User is currently working on: ${stepTitle}
-
-Recent answers context: ${this.buildAnswersContext(currentAnswers)}`;
-  }
 
   private buildAnswersContext(answers: Record<string, any>): string {
     const recentAnswers = Object.entries(answers)
@@ -319,7 +282,7 @@ Recent answers context: ${this.buildAnswersContext(currentAnswers)}`;
 
   // Utility methods
   private generateId(): string {
-    return `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `chat_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private estimateTokens(messages: any[]): number {

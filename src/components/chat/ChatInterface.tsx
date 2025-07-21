@@ -132,7 +132,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             type: 'assistant',
             content: chunk.content,
             timestamp: new Date(),
-            metadata: chunk.metadata
+            metadata: {
+              model: chunk.metadata?.model,
+              tokens: typeof chunk.metadata?.tokens === 'object' ? chunk.metadata.tokens : undefined,
+              processingTime: undefined,
+              streamingComplete: true,
+              currentStep: context?.currentStep,
+              totalSteps: context?.totalSteps,
+              stepTitle: context?.stepTitle,
+              wizardContext: context?.currentAnswers
+            }
           };
           setStreamingMessageId(chunk.id);
           return [...prev, newMessage];
@@ -200,7 +209,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!content.trim() || !chatServiceRef.current || !wsClientRef.current) return;
 
     const userMessage: ChatMessage = {
-      id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       sessionId,
       type: 'user',
       content: content.trim(),
@@ -424,7 +433,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 placeholder="Ask me anything about the audit..."
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={!isConnected}

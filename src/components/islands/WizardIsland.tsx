@@ -35,7 +35,6 @@ interface WizardIslandProps {
 export const WizardIsland: React.FC<WizardIslandProps> = ({
   sessionData,
   sessionId,
-  userId,
   onComplete,
   className = '',
   showChat = true,

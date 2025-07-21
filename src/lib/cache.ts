@@ -2,7 +2,7 @@
 // Provides intelligent caching with TTL management and cache invalidation
 
 import Redis from 'ioredis';
-import type { AuditSession, AuditAnswer, ChatMessage } from '@prisma/client';
+// Types imported when needed for cache operations
 
 export interface CacheConfig {
   host: string;
@@ -84,7 +84,7 @@ export const CACHE_KEYS = {
   
   // Analytics keys
   sessionAnalytics: (period: string) => `analytics:sessions:${period}`,
-  userAnalytics: (period: string) => `analytics:users:${period}`,
+  userAnalyticsByPeriod: (period: string) => `analytics:users:${period}`,
   
   // Query cache keys
   queryCache: (hash: string) => `query:${hash}`,
@@ -521,7 +521,7 @@ export class CacheService {
    */
   async cleanup(): Promise<void> {
     if (this.redis) {
-      await this.redis.disconnect();
+      this.redis.disconnect();
       this.redis = null;
       this.isConnected = false;
       console.log('🔌 Cache service disconnected');

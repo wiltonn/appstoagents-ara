@@ -1,7 +1,7 @@
 // PDF Generation Modal Component for Task 2.3
 // Allows users to customize and generate PDF reports
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { PDFCustomizations } from '../../types/pdf';
 
 interface PDFGenerationModalProps {
@@ -51,7 +51,7 @@ export const PDFGenerationModal: React.FC<PDFGenerationModalProps> = ({
       onClose();
     } catch (err) {
       console.error('PDF generation failed:', err);
-      setError(err.message || 'Failed to generate PDF');
+      setError(err instanceof Error ? err.message : 'Failed to generate PDF');
     } finally {
       setIsGenerating(false);
     }

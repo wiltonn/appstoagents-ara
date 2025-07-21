@@ -2,7 +2,7 @@
 // Task 2.1: Validation feedback with helpful error messages
 
 import React from 'react';
-import type { ValidationResult, ValidationError, ValidationWarning, ValidationSuggestion } from '../../lib/validationEngine';
+import type { ValidationResult, ValidationError, ValidationSuggestion } from '../../lib/validationEngine';
 
 interface ValidationFeedbackProps {
   validation: ValidationResult;

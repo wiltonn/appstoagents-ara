@@ -13,7 +13,6 @@ interface AccessibilityEnhancerProps {
 export const AccessibilityEnhancer: React.FC<AccessibilityEnhancerProps> = ({
   children,
   announceChanges = true,
-  focusManagement = true,
   className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);

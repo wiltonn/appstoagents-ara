@@ -2,10 +2,10 @@
 // Task 2.1: Enhanced wizard UI with conditional step navigation
 
 import type { WizardStep, Question } from '../types/wizard';
-import type { ConditionalLogic } from '../types/conditionalLogic';
+import type { StepConditionalLogic, ConditionalGroup, ConditionalLogicEvaluator, EnhancedConditionalLogic } from '../types/conditionalLogic';
 
 export interface NavigationRule {
-  condition: ConditionalLogic;
+  condition: StepConditionalLogic;
   action: 'skip' | 'require' | 'suggest' | 'block';
   targetStep?: string;
   message?: string;
@@ -49,7 +49,7 @@ export class ConditionalNavigationEngine {
 
     // Evaluate each rule
     for (const rule of rules) {
-      const conditionMet = this.evaluateCondition(rule.condition, answers);
+      const conditionMet = this.evaluateStepCondition(rule.condition, answers);
       
       if (conditionMet) {
         switch (rule.action) {
@@ -145,7 +145,7 @@ export class ConditionalNavigationEngine {
 
       // Check enhanced conditional logic first
       if (question.enhancedConditionalLogic) {
-        return this.evaluateCondition(question.enhancedConditionalLogic, answers);
+        return ConditionalLogicEvaluator.shouldShowQuestion(question.enhancedConditionalLogic, answers);
       }
 
       // Fallback to legacy conditional logic
@@ -169,51 +169,14 @@ export class ConditionalNavigationEngine {
   /**
    * Evaluate a conditional logic expression
    */
-  private evaluateCondition(condition: ConditionalLogic, answers: Record<string, any>): boolean {
-    if (condition.type === 'simple') {
-      const answer = answers[condition.questionId];
-      
-      switch (condition.operator) {
-        case 'equals':
-          return answer === condition.value;
-        case 'not_equals':
-          return answer !== condition.value;
-        case 'contains':
-          return Array.isArray(answer) && answer.includes(condition.value);
-        case 'not_contains':
-          return !Array.isArray(answer) || !answer.includes(condition.value);
-        case 'greater_than':
-          return Number(answer) > Number(condition.value);
-        case 'less_than':
-          return Number(answer) < Number(condition.value);
-        case 'greater_equal':
-          return Number(answer) >= Number(condition.value);
-        case 'less_equal':
-          return Number(answer) <= Number(condition.value);
-        case 'is_empty':
-          return !answer || answer === '' || (Array.isArray(answer) && answer.length === 0);
-        case 'is_not_empty':
-          return Boolean(answer) && answer !== '' && (!Array.isArray(answer) || answer.length > 0);
-        default:
-          return false;
-      }
+  private evaluateStepCondition(stepLogic: StepConditionalLogic, answers: Record<string, any>): boolean {
+    if (stepLogic.skipIf) {
+      return ConditionalLogicEvaluator.evaluateGroup(stepLogic.skipIf, answers);
     }
-
-    if (condition.type === 'compound') {
-      const leftResult = this.evaluateCondition(condition.left, answers);
-      const rightResult = this.evaluateCondition(condition.right, answers);
-      
-      switch (condition.operator) {
-        case 'and':
-          return leftResult && rightResult;
-        case 'or':
-          return leftResult || rightResult;
-        default:
-          return false;
-      }
+    if (stepLogic.showIf) {
+      return ConditionalLogicEvaluator.evaluateGroup(stepLogic.showIf, answers);
     }
-
-    return false;
+    return true;
   }
 
   /**
@@ -248,14 +211,6 @@ export class ConditionalNavigationEngine {
     return sortedSteps[currentIndex + 1];
   }
 
-  /**
-   * Get the previous step in natural order
-   */
-  private getPreviousStep(currentStep: WizardStep, allSteps: WizardStep[]): WizardStep | undefined {
-    const sortedSteps = allSteps.sort((a, b) => a.order - b.order);
-    const currentIndex = sortedSteps.findIndex(step => step.id === currentStep.id);
-    return sortedSteps[currentIndex - 1];
-  }
 
   /**
    * Get intelligent step suggestions based on current answers
@@ -269,7 +224,7 @@ export class ConditionalNavigationEngine {
     for (const step of allSteps) {
       const navigation = this.evaluateNavigation(step, allSteps, currentAnswers);
       
-      if (navigation.suggestedSteps.length > 0) {
+      if (navigation.suggestedSteps && navigation.suggestedSteps.length > 0) {
         suggestions.push({
           step,
           reason: `Based on your answers, this step may be particularly relevant`,
